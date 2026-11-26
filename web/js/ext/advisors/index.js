@@ -327,6 +327,17 @@ export function install(app) {
     },
   });
 
+  // The Names switch (js/lore.js): the data model copies names into its rows, so it is built again, and an open
+  // advisor is mounted again with the same parameters and scroll position (the map is not re-framed).
+  app.on("lore", () => {
+    if (!dataP) return; // never built yet: it will be built in the new tongue
+    dataP = null;
+    data = null;
+    if (app.mode !== "advisor" || !current) return;
+    const y = dock?.scrollTop ?? 0;
+    show(current === "council" ? null : current, app.modeParams || {}).then(() => { if (dock) dock.scrollTop = y; });
+  });
+
   app.hash.register("advisor", {
     get: () => (app.mode === "advisor" ? current || "council" : null),
     set(v) {

@@ -55,8 +55,28 @@ class LoreTablesTest(unittest.TestCase):
         self.assertEqual(sorted(names), sorted(set(names)))
 
     def test_kept_names(self):
-        for wid in ("nhl-66000496", "nhl-66000899"):  # Taos Pueblo, Cahokia Mounds
+        self.assertEqual(TABLES["kept"], {"nhl-66000496", "nhl-66000899"})  # Taos Pueblo, Cahokia Mounds
+        for wid in TABLES["kept"]:
             self.assertEqual(TABLES["wonders"][wid]["basis"], "none")
+
+    def entries(self):
+        for kind in ("lands", "places", "wonders", "rivers"):
+            for key, e in TABLES[kind].items():
+                yield kind, key, e
+        for s in TABLES["sites"]:
+            yield "sites", s["id"], s
+
+    def test_reasons_carry_no_editors_notes(self):
+        notes = re.compile(r"second choice|\btodo\b|\btbd\b|fixme|\(\?|\?\?", re.I)
+        for kind, key, e in self.entries():
+            with self.subTest(kind=kind, key=key):
+                self.assertIsNone(notes.search(e["why"]), e["why"])
+
+    def test_new_made_names_say_so(self):
+        for kind, key, e in self.entries():
+            if e["basis"] == "new":
+                with self.subTest(kind=kind, key=key):
+                    self.assertIn("The name is ours.", e["why"])
 
     def test_no_adaptation_names(self):
         self.assertIn("Thorin's Halls", TABLES["forbidden"])

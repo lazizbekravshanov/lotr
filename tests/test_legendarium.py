@@ -43,6 +43,7 @@ def tables(**over):
         "labels": [],
         "vocab": {"yields": {k: {"name": k.title(), "plain": "p"} for k in YIELD_KEYS}},
         "forbidden": {"Badname"},
+        "kept": {"w2"},
     }
     t.update(over)
     return t
@@ -169,11 +170,37 @@ class AssembleTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Badname"):
             lg.assemble(web_docs(), t)
 
+    def test_a_kept_listing_keeps_its_own_name(self):
+        t = tables()
+        t["wonders"]["w2"] = {"name": "The Other Thing", "basis": "likeness", "why": "w"}
+        with self.assertRaisesRegex(ValueError, "w2.*own name"):
+            lg.assemble(web_docs(), t)
+
+    def test_a_kept_listing_must_exist(self):
+        with self.assertRaisesRegex(ValueError, "w9"):
+            lg.assemble(web_docs(), tables(kept={"w2", "w9"}))
+
+    def test_repeated_wonder_or_site_name_raises(self):
+        site = lambda sid: {"id": sid, "name": "Sea Rock", "real": "A rock", "lat": 0.0, "lon": 86.6, "basis": "place", "why": "w"}
+        cases = {
+            "wonder": tables(kept=set(), wonders={"w1": {"name": "The Thing", "basis": "likeness", "why": "w"},
+                                                  "w2": {"name": "The Thing", "basis": "place", "why": "w"}}),
+            "site": tables(sites=[site("s1"), site("s2")]),
+        }
+        for what, t in cases.items():
+            with self.subTest(what=what), self.assertRaisesRegex(ValueError, "used twice"):
+                lg.assemble(web_docs(), t, projection=lambda lon, lat: (lon, lat))
+
+    def test_label_off_the_map_raises(self):
+        label = {"text": "THE FAR SEA", "sub": "", "kind": "sea", "lat": 30.0, "lon": -5.0, "angle": 0, "size": 1.0}
+        with self.assertRaisesRegex(ValueError, "THE FAR SEA.*off the map"):
+            lg.assemble(web_docs(), tables(labels=[label]), projection=lambda lon, lat: (lon, lat))
+
 
 class CheckTest(unittest.TestCase):
-    def write(self, tmp, doc):
+    def write(self, tmp, doc, web=None):
         wd = Path(tmp)
-        for name, d in web_docs().items():
+        for name, d in (web or web_docs()).items():
             (wd / f"{name}.json").write_text(json.dumps(d))
         if doc is not None:
             (wd / "legendarium.json").write_text(json.dumps(doc))
@@ -181,6 +208,38 @@ class CheckTest(unittest.TestCase):
 
     def levels(self, lines):
         return [lv for lv, _ in lines]
+
+    def fails(self, doc, needle, web=None):
+        with tempfile.TemporaryDirectory() as tmp:
+            lines = lg.check(self.write(tmp, doc, web), kept={"w2"})
+        return [msg for lv, msg in lines if lv == "FAIL" and needle in msg]
+
+    def test_rule_breaks_in_the_file_fail(self):
+        label = {"text": "THE FAR SEA", "sub": "", "kind": "sea", "x": -122.0, "y": 30.0, "angle": 0, "size": 1}
+        site = {"id": "searock", "name": "Sea Rock", "real": "r", "basis": "place", "why": "w", "x": 86.6, "y": 0.0, "cell": 2}
+        cases = {
+            "a kept listing renamed": (lambda d: d["wonders"]["w2"].update(name="The Other", basis="likeness"), "w2"),
+            "a place name used twice": (lambda d: d["places"].update({"10001": dict(d["places"]["10000"])}), "Bigburg"),
+            "a yield missing from the vocabulary": (lambda d: d["vocab"]["yields"].pop("food"), "food"),
+            "a vocabulary id the data lacks": (lambda d: d["vocab"]["yields"].update(mana={"name": "Mana", "plain": "p"}), "mana"),
+            "a label off the map": (lambda d: d["labels"].append(label), "THE FAR SEA"),
+            "a state in two realms": (lambda d: d["realms"][1]["states"].append("01"), "01"),
+            "a site off US land": (lambda d: d["sites"].append(site), "searock"),
+        }
+        for what, (change, needle) in cases.items():
+            doc = lg.assemble(web_docs(), tables())
+            change(doc)
+            with self.subTest(what=what):
+                self.assertTrue(self.fails(doc, needle), what)
+
+    def test_projection_far_from_the_cities_fails(self):
+        # The reference cities placed 100 km east of where the shipped constants put them.
+        albers, p = Albers(), lg.PROJECTION
+        web = web_docs()
+        for cbsa, (lat, lon) in lg.REFERENCE.items():
+            ax, ay = albers(lon, lat)
+            web["cities"].append({"id": cbsa, "name": cbsa, "x": ax + p.margin - p.min_x + 100.0, "y": p.margin + p.max_y - ay})
+        self.assertTrue(self.fails(lg.assemble(web_docs(), tables()), "projection", web=web))
 
     def test_missing_file_is_a_note(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -223,7 +282,7 @@ class RealDataTest(unittest.TestCase):
         self.assertEqual(len(d["lands"]), 49)
         self.assertGreaterEqual(len(d["places"]), 48)
         self.assertEqual(len(d["wonders"]), 32)
-        self.assertEqual(len(d["sites"]), 17)
+        self.assertEqual(len(d["sites"]), 16)
         self.assertEqual(sum(r["totals"]["population"] for r in d["realms"]),
                          sum(s["population"] for s in self.web["states"]))
 
@@ -241,6 +300,15 @@ class RealDataTest(unittest.TestCase):
 
     def test_output_is_under_300_kb(self):
         self.assertLess(len(json.dumps(self.doc, separators=(",", ":"), ensure_ascii=False).encode()), 300_000)
+
+    def test_the_shipped_file_is_fresh(self):
+        shipped = json.loads((WEB_DATA / "legendarium.json").read_text())
+        self.assertEqual(shipped, json.loads(json.dumps(self.doc)),
+                         "web/data/legendarium.json is stale: uv run python -m pipeline build legendarium")
+
+    def test_the_shipped_file_passes_its_check(self):
+        lines = lg.check(WEB_DATA)
+        self.assertEqual([msg for lv, msg in lines if lv == "FAIL"], [])
 
     def test_shipped_projection_agrees_with_the_cities(self):
         ox, oy, spread = lg.fit_offsets(self.web["cities"])

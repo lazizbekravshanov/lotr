@@ -61,12 +61,21 @@ async function main() {
   // The legendarium (js/lore.js): Middle-earth names over the real data, switchable to real names. Names are applied
   // before the world is prepared, so state labels are fitted to the names being shown. Without the file the lore
   // object is a passthrough and everything below behaves as usaciv does.
-  const lore = createLore(legendarium, { world, states: Array.isArray(statesData) ? statesData : null, cities, nation });
-  lore.apply();
+  const loreData = { world, states: Array.isArray(statesData) ? statesData : null, cities, nation };
+  let lore = createLore(legendarium, loreData);
+  try {
+    lore.apply();
+  } catch (err) {
+    // A file this code cannot read must not take the map down: the site then reads as usaciv does.
+    console.error("legendarium.json ignored", err);
+    lore = createLore(null, loreData);
+  }
   const defaultAge = lore.age;
   // The Realms lens colours every state by its realm. It is built from the legendarium, not read from lenses.json,
-  // and exists only in the legend tongue (css hides it in the real one; see the lore listener below).
+  // and exists only in the legend tongue: lensShown() keeps it out of every list (quick row, picker, L key, Almanac)
+  // and setLens() refuses it in the real tongue.
   const realmLens = lore.realmLens(world);
+  const lensShown = (l) => !l || l.id !== "realms" || (lore.ok && lore.tongue === "legend");
   if (realmLens) {
     lensFile.groups = [...(lensFile.groups || []), { id: "realms", name: "Realms", icon: "layers" }];
     lensFile.lenses = [...lensFile.lenses, realmLens];
@@ -115,7 +124,7 @@ async function main() {
     requestDraw();
     url.schedule();
   });
-  const pedia = initPedia({ world, nation, lenses: lensFile, sources: sources || [], w, resources, states });
+  const pedia = initPedia({ world, nation, lenses: lensFile, sources: sources || [], w, resources, states, lensShown });
   const help = initHelp();
 
   // --- static layer cache ----------------------------------------------------------------------------------------
@@ -510,7 +519,7 @@ async function main() {
 
   // --- lens ------------------------------------------------------------------------------------------------------
   const dock = initLensDock({
-    lenses: lensFile, sources: sources || [], w,
+    lenses: lensFile, sources: sources || [], w, shown: lensShown,
     onPick: (lens) => setLens(lens),
     onBand: (band) => setBand(band),
   });
@@ -523,6 +532,7 @@ async function main() {
   };
 
   function setLens(lens) {
+    if (!lensShown(lens)) lens = null; // the Realms lens in the real tongue (a link, an advisor restoring it)
     const changed = lens !== state.lens;
     state.lens = lens;
     state.band = null;
@@ -568,11 +578,14 @@ async function main() {
     onRealm: (id) => app.selectRealm?.(id),
   });
 
-  // A realm selection lights its states through state.highlight; any other selection takes that light away.
+  // A realm selection lights its states through state.highlight; any other selection takes that light away. The
+  // highlight is shared with extensions, so only our own is cleared (an advisor may have set its own since).
+  let realmLight = null;
   function dropRealm() {
     if (!state.selectedRealm) return;
     state.selectedRealm = null;
-    state.highlight = null;
+    if (state.highlight === realmLight) state.highlight = null;
+    realmLight = null;
   }
 
   function selectCity(city, { fly = true } = {}) {
@@ -604,7 +617,8 @@ async function main() {
     state.selectedCity = null;
     state.selectedState = null;
     state.selectedRealm = realm.id;
-    state.highlight = { states: new Set(realm.states.map((f) => stateIndex(w, f)).filter((i) => i >= 0)), dimOthers: true };
+    realmLight = { states: new Set(realm.states.map((f) => stateIndex(w, f)).filter((i) => i >= 0)), dimOthers: true };
+    state.highlight = realmLight;
     openRealmPanel(realm, panelCtx());
     const b = fly ? highlightBounds(w, state.highlight) : null;
     if (b) fitBounds(b.x0, b.y0, b.x1, b.y1, { maxScale: 2.2 });
@@ -643,8 +657,9 @@ async function main() {
   installSheetSwipe(() => clearSelection());
 
   // --- URL state -------------------------------------------------------------------------------------------------
-  // #state= accepts a FIPS code ("48", "6"), a postal code ("TX", "tx") or a name ("Texas"). Links keep the form
-  // they were opened with; the app itself writes FIPS.
+  // #state= accepts a FIPS code ("48", "6"), a postal code ("TX", "tx") or a name ("Texas", or the land's name,
+  // "Rohan"). The real name works in either tongue, so usaciv's links keep working. Links keep the form they were
+  // opened with; the app itself writes FIPS.
   function stateFromHash(ref) {
     const t = String(ref ?? "").trim();
     if (!t) return -1;
@@ -652,7 +667,8 @@ async function main() {
     const k = stateIndex(w, t.toUpperCase());
     if (k >= 0) return k;
     const name = t.toLowerCase().replace(/[_+]/g, " ");
-    return w.raw.states.findIndex((st, i) => (states?.[i]?.name || st.name || "").toLowerCase() === name);
+    const names = (st, i) => [states?.[i]?.name, st.name, lore.realName(st)];
+    return w.raw.states.findIndex((st, i) => names(st, i).some((n) => (n || "").toLowerCase() === name));
   }
   let stateHashRef = null; // {idx, raw}: the form of the #state value the current selection came from
   const url = createHashState({
@@ -724,31 +740,35 @@ async function main() {
   });
   // Wonders load after the first frame; their names are taken over before the map layers see them.
   events.on("data", ({ name, data }) => { if (name === "wonders") lore.adopt("wonders", data); });
+  // After a change of tongue or Age everything that shows a name shows it again, in place: the selection, the
+  // camera, an open mode and keyboard focus all stay as they were.
+  function refreshPanel() {
+    if (panelEl.hidden) return; // (the City View hides it while open)
+    const top = panelEl.scrollTop;
+    const kind = panelEl.dataset.kind;
+    if (kind === "city" && state.selectedCity) app.panels.city(state.selectedCity, panelCtx());
+    else if (kind === "state" && state.selectedState != null) app.panels.state(state.selectedState, panelCtx());
+    else if (kind === "realm" && state.selectedRealm) openRealmPanel(lore.realm(state.selectedRealm), panelCtx());
+    panelEl.scrollTop = top;
+  }
   lore.on(() => {
     // Realm features exist only in the legend tongue.
     document.body.classList.toggle("tongue-real", lore.tongue === "real");
-    if (lore.tongue === "real") {
-      if (state.selectedRealm) clearSelection();
-      if (state.lens?.id === "realms") setLens(null);
-    }
+    if (lore.tongue === "real" && state.selectedRealm) clearSelection();
+    if (!lensShown(state.lens)) setLens(null);
+    else dock.render(state.lens, state.band); // the quick row and the picker list what this tongue shows
     lore.applyColors(w);
     relabelStates(w);
     search.rebuild?.();
     renderTopbar(nation);
-    // Panels, the City View and the Advisors render names once: show them again in the new tongue.
-    if (state.selectedCity && !modes.mode) app.panels.city(state.selectedCity, panelCtx());
-    else if (state.selectedState != null) app.panels.state(state.selectedState, panelCtx());
-    else if (state.selectedRealm) openRealmPanel(lore.realm(state.selectedRealm), panelCtx());
-    const mode = modes.mode, params = modes.modeParams;
-    if (mode) {
-      modes.setMode(null);
-      modes.setMode(mode, params);
-    }
+    reports.invalidate();
+    refreshPanel();
+    // Extensions that copy names into structures of their own (the City View, the Advisors) refresh on this event.
+    events.emit("lore", { tongue: lore.tongue, age: lore.age });
     app.invalidate();
     rebuildMinimap();
     describeCanvas();
     url.schedule();
-    events.emit("lore", { tongue: lore.tongue, age: lore.age });
   });
 
   // --- top bar, search, share, help ------------------------------------------------------------------------------
@@ -1240,7 +1260,7 @@ async function main() {
     } else if (k === "+" || k === "=") { cam.zoomBy(cam.w / 2, cam.h / 2, 1.5); moved(); requestDraw(); }
     else if (k === "-" || k === "_") { cam.zoomBy(cam.w / 2, cam.h / 2, 1 / 1.5); moved(); requestDraw(); }
     else if (k === "l") {
-      const all = [null, ...lensFile.lenses];
+      const all = [null, ...lensFile.lenses.filter(lensShown)];
       const step = e.shiftKey ? -1 : 1;
       setLens(all[(all.indexOf(state.lens) + step + all.length) % all.length]);
     } else if (k === "r" && w.resources) resBtn?.click();

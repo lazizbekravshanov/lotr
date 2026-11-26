@@ -72,6 +72,41 @@ export const cases = [
     assert.equal(lore.sig(), "real|ta");
   }],
 
+  ["a malformed file is ignored", (assert) => {
+    const { doc } = fixture();
+    const [arnor, shire] = doc.realms;
+    const bad = {
+      "another version": { ...doc, version: 2 },
+      "a realm without colours": { ...doc, realms: [{ ...arnor, colors: undefined }, shire] },
+      "a colour that is not #rrggbb": { ...doc, realms: [{ ...arnor, colors: ["red"] }, shire] },
+      "states that are not a list": { ...doc, realms: [{ ...arnor, states: "36" }, shire] },
+      "realms that are not a list": { ...doc, realms: "arnor" },
+    };
+    for (const [what, d] of Object.entries(bad)) {
+      const { data } = fixture();
+      const lore = createLore(d, data);
+      lore.apply();
+      assert.equal(lore.ok, false, what);
+      assert.equal(city(data, "35620").name, "New York", what);
+      assert.equal(lore.realmLens(data.world), null, what);
+    }
+  }],
+
+  ["an entry without a name keeps the real name", (assert) => {
+    const { doc, data } = fixture();
+    doc.places[35620] = { basis: "name", why: "No name given." };
+    doc.lands[42] = { realm: "shire", basis: "name", why: "No name given." };
+    doc.vocab.yields.food = "Harvest"; // not {name, plain}
+    const lore = createLore(doc, data);
+    lore.apply();
+    assert.equal(city(data, "35620").name, "New York");
+    assert.equal(city(data, "16980").name, "Annúminas", "the rest of the file still applies");
+    assert.equal(data.world.states[1].name, "Pennsylvania");
+    assert.equal(data.nation.yields[0].label, "Food");
+    assert.equal(data.nation.yields[1].label, "Themed production");
+    assert.equal(lore.aliases().some((a) => a.kind === "city" && a.id === "35620"), false);
+  }],
+
   ["legend names are applied, real ones kept", (assert) => {
     const { doc, data } = fixture();
     const lore = createLore(doc, data);

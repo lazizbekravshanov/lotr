@@ -108,13 +108,15 @@ export async function install(app) {
     return w >= 1500 ? 470 : w >= 1100 ? 430 : Math.max(340, Math.round(w * 0.42));
   }
 
-  function show(city, { fit = true } = {}) {
+  // rerender: draw the same city's screen again (the Names switch), keeping its scroll position and keyboard focus.
+  function show(city, { fit = true, rerender = false } = {}) {
     if (!city) return;
     const same = cv.city === city && cv.dock && !cv.dock.hidden;
     cv.city = city;
     const m = buildModel(app, city);
     m.cityList = app.data.cities;
     m.landColor = layer.landColor;
+    m.lore = app.lore;
     cv.model = m;
     layer.set(m); // a new model restarts the border animation
     banners.set(m);
@@ -122,10 +124,12 @@ export async function install(app) {
     layer.focus(-1);
 
     cv.dock = app.ui.dock("right", { width: dockWidth(), label: `City View: ${city.name}` });
-    if (!same) {
+    if (!same || rerender) {
+      const top = same ? cv.dock.scrollTop : 0;
       render(cv.dock, m, {
         onClose: () => leave(true),
         onState: (idx) => { leave(false); app.selectState(idx, { fly: true }); },
+        onRealm: (id) => { leave(false); app.selectRealm?.(id); },
         onPeer: (id) => openCityView(app.cityById.get(id)),
         onSite: (s) => flyToSite(s),
         onSiteHover: (s) => layer.focus(s ? s.item.cell ?? -1 : cv.pinned),
@@ -139,6 +143,10 @@ export async function install(app) {
         },
       });
       installSwipe(cv.dock);
+      if (same) {
+        cv.dock.scrollTop = top;
+        cv.dock.onscroll?.(); // the tab spy
+      }
     }
     if (cv.section) {
       goToSection(cv.dock, cv.section);
@@ -374,6 +382,12 @@ export async function install(app) {
         cv.exiting = false;
       }
     },
+  });
+
+  // The Names switch (js/lore.js): the open city's screen, legend and dock label show the new names. The city, the
+  // camera, the scroll position and keyboard focus stay as they were (the view is not left and entered again).
+  app.on("lore", () => {
+    if (app.mode === MODE && cv.city) show(cv.city, { fit: false, rerender: true });
   });
 
   // The selection moved elsewhere (a state, nothing, Back in the browser): leave without flying back.

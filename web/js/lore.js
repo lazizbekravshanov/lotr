@@ -17,8 +17,19 @@ const BASIS_LABEL = { place: "by place", likeness: "by likeness", name: "by name
 export const normName = (s) => String(s ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
   .replace(/[^a-z0-9]+/g, " ").trim();
 
-// An entry that actually renames: basis "none" means the place keeps its own name.
-const renames = (e) => (e && e.basis !== "none" ? e : null);
+// An entry that actually renames: basis "none" means the place keeps its own name, and an entry without a name
+// (a damaged file) renames nothing.
+const isName = (s) => typeof s === "string" && s.trim() !== "";
+const renames = (e) => (e && e.basis !== "none" && isName(e.name) ? e : null);
+
+// The file this code understands: version 1, with realms that each have an id, a name, a list of states and a
+// #rrggbb colour. Anything else (a stale cache serving another version, a damaged file) is ignored as a whole.
+const VERSION = 1;
+const HEX = /^#[0-9a-f]{6}$/i;
+const validRealm = (r) => !!r && isName(r.id) && isName(r.name) && Array.isArray(r.states)
+  && Array.isArray(r.colors) && HEX.test(r.colors[0] ?? "");
+const validDoc = (doc) => !!doc && doc.version === VERSION && Array.isArray(doc.realms) && doc.realms.length > 0
+  && doc.realms.every(validRealm);
 
 function keepReal(obj, fields) {
   if (obj.real) return obj.real;
@@ -38,7 +49,7 @@ function setOrDelete(obj, key, value) {
  * data: {world, states, cities, nation} as loaded (states may be null).
  */
 export function createLore(doc, data) {
-  const ok = !!(doc && Array.isArray(doc.realms) && doc.realms.length);
+  const ok = validDoc(doc);
   const realms = ok ? doc.realms : [];
   const ages = ok && Array.isArray(doc.ages) ? doc.ages.map((a) => a.id) : [];
   const worldStates = data?.world?.states || [];
@@ -95,8 +106,9 @@ export function createLore(doc, data) {
     for (const y of data.nation?.yields || []) {
       const real = keepReal(y, ["label", "description"]);
       const v = legend ? doc.vocab?.yields?.[y.key] : null;
-      y.label = v ? v.name : real.label;
-      y.description = v ? `${real.label}: ${real.description}` : real.description;
+      const themed = isName(v?.name) ? v.name : null;
+      y.label = themed ?? real.label;
+      y.description = themed ? `${real.label}: ${real.description}` : real.description;
     }
     for (const wd of adopted.wonders) {
       const e = legend ? renames(entry("wonders", wd.id)) : null;

@@ -206,6 +206,7 @@
 .cv-schematic b { color: var(--gold-bright); font-weight: normal; font-family: var(--serif); letter-spacing: .04em; }
 
 /* ---------- city-type badge (header) ---------- */
+.cv-why { margin: 10px 0 2px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: rgba(0, 0, 0, .18); }
 .cv-typeslot:empty { display: none; }
 .cv-typeslot { margin-top: 5px; }
 .cv-type {

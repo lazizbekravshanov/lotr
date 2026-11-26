@@ -2,7 +2,7 @@
 """
 
 RIVERS = {
-    "Mississippi": {"name": "Anduin, the Great River", "basis": "name", "why": "Misi-ziibi means Great River. So does Anduin."},
+    "Mississippi": {"name": "Anduin, the Great River", "basis": "name", "why": "Misi-ziibi means Great River, and the Great River is Anduin's own title."},
     "Missouri": {"name": "Langwell", "basis": "place", "why": "The long northern source of the Great River."},
     "Ohio": {"name": "Gwathló (Greyflood)", "basis": "place", "why": "The border of Cardolan, with Tharbad on it."},
     "Arkansas": {"name": "Entwash", "basis": "place", "why": "From the mountains, across the Mark, into the Great River."},

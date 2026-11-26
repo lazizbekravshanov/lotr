@@ -11,6 +11,7 @@ import { sparkline, meter, bar } from "./charts.js";
 import { popSeries, rankCount, resourceValue, LAND } from "./model.js";
 import { citizensHtml, mountCitizens } from "./citizens.js";
 import { badgeHtml, cityDistricts, districtsHtml } from "./districts.js";
+import { loreCard, realmChip } from "../../ui/infoPanel.js";
 
 const TABS = [
   ["citizens", "Citizens", "pop"],
@@ -53,9 +54,13 @@ function header(m) {
   const c = m.city, n = m.nation.nation;
   const cities = m.cityList;
   const col = css(m.stateRGB);
+  // The legendarium (js/lore.js): why the city has its name here, and its realm. Nothing in the real tongue.
+  const lore = m.lore;
+  const legend = lore?.ok && lore.tongue === "legend";
+  const why = loreCard(lore, lore?.entry("places", c.id), lore?.realName(c));
   const chips = m.states.map((s) => (s.index >= 0
     ? `<button class="chip" data-state="${s.index}" title="Open ${esc(s.name)}">${esc(s.abbr)}</button>`
-    : `<span class="chip">${esc(s.abbr)}</span>`)).join("");
+    : `<span class="chip">${esc(s.abbr)}</span>`)).join("") + (legend ? realmChip(lore.realmOfCity(c)) : "");
   const g = Number.isFinite(c.growth) ? c.growth : null;
   const yrs = Array.isArray(c.growth_years) ? c.growth_years : null;
   const growth = g == null ? "" : `<span class="cv-growth ${g >= 0 ? "good" : "bad"}" title="Population change ${yrs ? `${yrs[0]}–${yrs[1]}` : ""}, Census population estimates. U.S.: ${signed(n.growth)}">${g >= 0 ? "▲" : "▼"} ${Math.abs(g * 100).toFixed(1)}%${yrs ? ` <small>since ${yrs[0]}</small>` : ""}</span>`;
@@ -77,6 +82,7 @@ function header(m) {
         ${chips ? `<div class="chips">${chips}</div>` : ""}
       </div>
     </div>
+    ${why ? `<div class="cv-why">${why}</div>` : ""}
     <div class="cv-headline">
       <div class="cv-big"><span class="lbl">${icon("pop", "👥", { size: 13 })} Population</span><b>${int(c.population)}</b>${growth}</div>
       <div class="cv-big"><span class="lbl">${icon("y-gold", "💰", { size: 13 })} GDP${c.gdp_year ? ` ${c.gdp_year}` : ""}</span><b>${money(c.gdp)}</b>${
@@ -372,6 +378,7 @@ export function render(el, m, h) {
 
   el.querySelector("[data-close]").onclick = () => h.onClose();
   el.querySelectorAll("[data-state]").forEach((b) => (b.onclick = () => h.onState(+b.dataset.state)));
+  el.querySelectorAll("[data-realm]").forEach((b) => (b.onclick = () => h.onRealm?.(b.dataset.realm)));
   el.querySelector("[data-pedia]").onclick = (e) => { e.preventDefault(); h.onPedia(); };
 
   // Sites: hover lights the hex on the map, click flies there.

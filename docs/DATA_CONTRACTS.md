@@ -769,7 +769,11 @@ lists, `nation.yields` labels, adopted wonders) and keeps the original under a n
 (`{name, short}`, or `{label, description}` for a yield). Modules therefore keep reading `.name`; `obj.real.name` is
 always the real one. In the legend tongue `w.stateColor[i]` is the realm's colour and a banner takes
 `lore.cityColor(city)`; the real tongue restores usaciv's palette. Realm features (the `realms` lens, the realm
-panel, `#realm=`) exist only in the legend tongue.
+panel, `#realm=`) exist only in the legend tongue: in the real one the Realms lens is left out of the quick row,
+the picker, the L key and the Almanac, and `setLens` refuses it.
+* The check also fails when a kept listing (`pipeline/lore` `KEPT`: Taos Pueblo, Cahokia Mounds) is renamed, when a
+  name is used twice within places, wonders or sites, when the yield vocabulary and `nation.json` disagree, and when
+  a label lies off the map.
 
 ## sources.json
 
@@ -809,8 +813,12 @@ Extensions live in `web/js/ext/<name>/index.js` and export `install(app)`; `ext/
 * `app.lore`: `ok`, `tongue`, `age`, `realms`, `setTongue(t)`, `setAge(a)`, `entry(kind, id)` (kinds `lands`, `places`,
   `wonders`, `rivers`), `realm(id)`, `realmOfState(ref)`, `realmOfCity(city)`, `cityColor(city)`, `realName(obj)`,
   `basisLabel(code)`, `aliases()`, `sig()`. `w.lore` is the same object for modules that only receive `w`.
-* The app emits `"lore"` `{tongue, age}` after each change, once names, colours, labels and open panels are redrawn.
-  An active mode is left and re-entered with its parameters, so an extension needs no code of its own for it.
+* The app emits `"lore"` `{tongue, age}` after each change, once names, colours, labels, the top-bar reports and the
+  open panel are redrawn. An active mode is not left: an extension that copies names into structures of its own (the
+  City View's model, the Advisors' rows) rebuilds them on this event and redraws in place, keeping the selection,
+  the camera, the scroll position and keyboard focus. One that reads `.name` when it draws needs no code for it.
+* The file is used only if it is version 1 and every realm has an id, a name, a list of states and a `#rrggbb`
+  colour; otherwise the site reads as usaciv does. An entry without a name renames nothing.
 * `app.selectRealm(id, {fly})` selects a realm (legend tongue only; returns false otherwise).
 * URL keys: `names=real`, `age=sa|fa`, `realm=<id>`; absent means the default. Unknown values are ignored.
 

@@ -93,6 +93,23 @@ def _unknown(kind: str, keys, known) -> None:
         raise ValueError(f"{kind}: unknown key {', '.join(repr(k) for k in extra)}")
 
 
+def _repeats(kind: str, items) -> list[str]:
+    """Messages for each name used twice within one kind. items: (key, name) pairs. Names may repeat across kinds
+    (a land and its chief place, a city and the fort in it); within a kind each must be unique."""
+    seen: dict[str, str] = {}
+    out = []
+    for key, name in items:
+        if name in seen:
+            out.append(f"{kind} name {name!r} is used twice ({seen[name]}, {key})")
+        else:
+            seen[name] = key
+    return out
+
+
+def _off_map(x: float, y: float, world: dict) -> bool:
+    return not (0 <= x <= world["width"] and 0 <= y <= world["height"])
+
+
 def _land_cell(grid: HexGrid, owner: list[int], x: float, y: float) -> int:
     """The cell at (x, y) if it is US land, else the nearest US land cell within SNAP_RINGS, else -1."""
     start = grid.cell_at(x, y)
@@ -139,17 +156,24 @@ def assemble(web: dict[str, Any], tables: dict[str, Any] = TABLES,
         if abbr not in tables["lands"]:
             raise ValueError(f"state {abbr} has no land")
     city_ids = {c["id"] for c in cities}
+    wonder_ids = {w["id"] for w in web["wonders"]["wonders"]}
     _unknown("places", tables["places"], city_ids)
-    _unknown("wonders", tables["wonders"], {w["id"] for w in web["wonders"]["wonders"]})
+    _unknown("wonders", tables["wonders"], wonder_ids)
     _unknown("rivers", tables["rivers"], {r["name"] for r in world["rivers"] if r["name"]})
     for kind in ("lands", "places", "wonders", "rivers"):
         for key, e in tables[kind].items():
             _entry(kind, key, e, forbidden)
-    seen: dict[str, str] = {}
-    for cbsa, e in tables["places"].items():
-        if e["name"] in seen:
-            raise ValueError(f"place name {e['name']!r} is used twice ({seen[e['name']]}, {cbsa})")
-        seen[e["name"]] = cbsa
+    # Principle 3: a listing that is itself an Indigenous community or heritage site keeps its own name.
+    kept = set(tables.get("kept", ()))
+    _unknown("kept listings", kept, wonder_ids)
+    for wid in sorted(kept):
+        if tables["wonders"].get(wid, {}).get("basis", "none") != "none":
+            raise ValueError(f"wonder {wid} is on the kept list and must keep its own name (basis 'none')")
+    repeats = _repeats("place", ((k, e["name"]) for k, e in tables["places"].items()))
+    repeats += _repeats("wonder", ((k, e["name"]) for k, e in tables["wonders"].items()))
+    repeats += _repeats("site", ((s["id"], s["name"]) for s in tables["sites"]))
+    if repeats:
+        raise ValueError("; ".join(repeats))
 
     # --- realm totals (sums over member states) and ranks among realms
     def total(members: list[str], get) -> float | None:
@@ -191,6 +215,9 @@ def assemble(web: dict[str, Any], tables: dict[str, Any] = TABLES,
     labels = []
     for b in tables["labels"]:
         x, y = (round(v, 1) for v in projection(b["lon"], b["lat"]))
+        if _off_map(x, y, world):
+            raise ValueError(f"label {b['text']!r} is off the map at ({x}, {y}); the map is "
+                             f"{world['width']} by {world['height']} km")
         labels.append({"text": b["text"], "sub": b.get("sub", ""), "kind": b["kind"], "x": x, "y": y,
                        "angle": b.get("angle", 0), "size": b.get("size", 1.0)})
 
@@ -219,8 +246,12 @@ def build() -> None:
     write_web("legendarium.json", assemble(web))
 
 
-def check(web_dir) -> list[tuple[str, str]]:
-    """Validate legendarium.json against the data files beside it. A missing file is a NOTE (it is optional)."""
+def check(web_dir, kept=None) -> list[tuple[str, str]]:
+    """Validate legendarium.json against the data files beside it. A missing file is a NOTE (it is optional).
+
+    kept: wonder ids that must keep their own names (default: the lore tables' kept list).
+    """
+    kept = set(TABLES["kept"] if kept is None else kept)
     web_dir = Path(web_dir)
     path = web_dir / "legendarium.json"
     if not path.exists():
@@ -262,6 +293,21 @@ def check(web_dir) -> list[tuple[str, str]]:
         cell = s.get("cell", -1)
         if not (0 <= cell < len(world["owner"])) or world["owner"][cell] < 0:
             lines.append(("FAIL", f"site {s.get('id')}: its cell is not US land"))
+    for wid in sorted(kept & wonder_ids):
+        if doc.get("wonders", {}).get(wid, {}).get("basis", "none") != "none":
+            lines.append(("FAIL", f"wonder {wid} is on the kept list and must keep its own name"))
+    for kind, items in (("place", [(k, e.get("name")) for k, e in doc.get("places", {}).items()]),
+                        ("wonder", [(k, e.get("name")) for k, e in doc.get("wonders", {}).items()]),
+                        ("site", [(s.get("id"), s.get("name")) for s in doc.get("sites", [])])):
+        lines += [("FAIL", msg) for msg in _repeats(kind, items)]
+    vocab = set((doc.get("vocab") or {}).get("yields") or {})
+    yield_keys = {y["key"] for y in web["nation"]["yields"]}
+    lines += [("FAIL", f"vocabulary misses the yield {k!r}") for k in sorted(yield_keys - vocab)]
+    lines += [("FAIL", f"vocabulary names a yield the data lacks: {k!r}") for k in sorted(vocab - yield_keys)]
+    for b in doc.get("labels", []):
+        x, y = b.get("x"), b.get("y")
+        if not (isinstance(x, (int, float)) and isinstance(y, (int, float))) or _off_map(x, y, world):
+            lines.append(("FAIL", f"label {b.get('text')!r} is off the map ({x}, {y})"))
     try:
         ox, oy, _ = fit_offsets(cities)
         off = max(abs(ox - (PROJECTION.margin - PROJECTION.min_x)), abs(oy - (PROJECTION.margin + PROJECTION.max_y)))

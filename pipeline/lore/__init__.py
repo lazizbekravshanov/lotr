@@ -30,6 +30,10 @@ BASIS = {
 # Names that come from games, films or the television series, not from the books. They must never appear.
 FORBIDDEN = {"Thorin's Halls", "Tirharad", "Hordern", "Ostirith", "Caras Gaer", "Dúrnost", "Southlands", "Nazgnagôl"}
 
+# Listings that are themselves an Indigenous community or heritage site keep their own names (principle 3). The
+# builder and its check fail if one of them is renamed.
+KEPT = {"nhl-66000496", "nhl-66000899"}  # Taos Pueblo, Cahokia Mounds
+
 TABLES = {
     "basis": BASIS,
     "ages": AGES,
@@ -42,4 +46,5 @@ TABLES = {
     "labels": LABELS,
     "vocab": VOCAB,
     "forbidden": FORBIDDEN,
+    "kept": KEPT,
 }

@@ -70,11 +70,13 @@ const saveRecent = (ids) => {
 };
 
 /**
- * opts: {lenses (lenses.json), sources (sources.json list), w (prepared world), onPick(lens|null), onBand(band|null)}
+ * opts: {lenses (lenses.json), sources (sources.json list), w (prepared world), onPick(lens|null), onBand(band|null),
+ *        shown?(lens) → false to leave a lens out of the quick row and the picker for now (read on every render)}
  */
 export function initLensDock(opts) {
   const { lenses: lensFile, w } = opts;
   const lenses = lensFile?.lenses || [];
+  const shown = (l) => opts.shown?.(l) ?? true;
   const sources = opts.sources || [];
   const byId = new Map(lenses.map((l) => [l.id, l]));
   const quick = document.getElementById("lens-quick");
@@ -99,10 +101,18 @@ export function initLensDock(opts) {
     `<button class="lens-btn ${isActive(l) ? "active" : ""}" data-id="${esc(l.id ?? "")}" aria-pressed="${isActive(l)}"
       title="${esc(l.name)}${l.id ? " lens" : " (no lens)"}">${glyph(l, 15)}<span>${esc(l.name)}</span></button>`;
 
+  // The three most recent lenses that are shown now, topped up in list order when one of them is not.
+  function quickLenses() {
+    const out = recent.map((id) => byId.get(id)).filter((l) => l && shown(l));
+    for (const l of lenses) if (out.length < 3 && shown(l) && !out.includes(l)) out.push(l);
+    return out;
+  }
+
   function renderQuick() {
-    const row = [TERRAIN, ...recent.map((id) => byId.get(id)).filter(Boolean)];
+    const quickList = quickLenses();
+    const row = [TERRAIN, ...quickList];
     quick.innerHTML = row.map(quickBtn).join("");
-    const inRow = !active || recent.includes(active.id);
+    const inRow = !active || quickList.includes(active);
     moreBtn.classList.toggle("active", !inRow);
     moreBtn.innerHTML = `${icon("layers", "▤", { size: 15 })}<span>${inRow ? "Lenses" : esc(active.name)}</span><span class="caret" aria-hidden="true">▾</span>`;
     moreBtn.title = "All lenses (L cycles)";
@@ -112,7 +122,8 @@ export function initLensDock(opts) {
   function renderPicker() {
     const groups = [...(lensFile?.groups || [])];
     const known = new Set(groups.map((g) => g.id));
-    if (lenses.some((l) => !known.has(l.group))) groups.push({ id: "__other", name: "Other" });
+    const list = lenses.filter(shown);
+    if (list.some((l) => !known.has(l.group))) groups.push({ id: "__other", name: "Other" });
     const tile = (l) => `<button class="lp-tile ${isActive(l) ? "active" : ""}" data-id="${esc(l.id ?? "")}" aria-pressed="${isActive(l)}"
         title="${esc(l.description || l.name)}">
         <span class="lp-ic">${glyph(l, 20)}</span><span class="lp-nm">${esc(l.name)}</span>
@@ -123,7 +134,7 @@ export function initLensDock(opts) {
     picker.innerHTML = `<div class="lp-head"><span>Choose a lens</span><button class="icon-btn lp-close" aria-label="Close lens picker">${icon("close", "✕", { size: 12 })}</button></div>
       <div class="lp-body">
       ${sec({ id: "base", name: "Base map", icon: "terrain" }, [TERRAIN])}
-      ${groups.map((g) => sec(g, lenses.filter((l) => (g.id === "__other" ? !known.has(l.group) : l.group === g.id)))).join("")}
+      ${groups.map((g) => sec(g, list.filter((l) => (g.id === "__other" ? !known.has(l.group) : l.group === g.id)))).join("")}
       </div>`;
   }
 

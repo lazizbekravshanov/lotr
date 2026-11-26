@@ -88,7 +88,7 @@ export function initPedia(data) {
       value are averaged over the counties in a hex, weighted by population.</p>
       <p>The legend shows how many hexes fall at each value. Hover or drag on it to show only that range on the map.</p>
       ${(data.lenses.groups || [{ id: null, name: "" }]).map((g) => {
-        const ls = data.lenses.lenses.filter((l) => !g.id || l.group === g.id);
+        const ls = data.lenses.lenses.filter((l) => (!g.id || l.group === g.id) && (data.lensShown?.(l) ?? true));
         if (!ls.length) return "";
         return `${g.name ? `<h3 class="grp">${icon(`g-${g.id}`, "", { size: 16 })} ${esc(g.name)}</h3>` : ""}${ls.map((l) => `
           <div class="lens-entry"><div class="le-ic">${glyph(l, 26)}</div><div>

@@ -359,7 +359,7 @@ function boardHtml(rows) {
 export function initYieldReports(opts) {
   const bar = document.getElementById("yields");
   const pop = document.getElementById("yield-report");
-  const none = { open() {}, close() {}, toggle() {}, get isOpen() { return false; }, build: () => null };
+  const none = { open() {}, close() {}, toggle() {}, invalidate() {}, get isOpen() { return false; }, build: () => null };
   if (!bar || !pop) return none;
   const data = { nation: opts.nation, states: opts.states, cities: opts.cities, lenses: opts.lenses, lensVintage: opts.lensVintage };
   const cityById = new Map((opts.cities || []).map((c) => [String(c.id), c]));
@@ -607,6 +607,12 @@ export function initYieldReports(opts) {
       else this.open(key);
     },
     build,
+    /** Display names changed (js/lore.js): reports are built again when next opened. An open one closes (its
+     *  top-bar button has just been drawn again). */
+    invalidate() {
+      cache.clear();
+      if (current) close(false);
+    },
     get isOpen() { return !!current; },
     get key() { return current?.key ?? null; },
   };

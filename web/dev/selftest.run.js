@@ -1,4 +1,5 @@
-// Shared by selftest.html and selftest.mjs: load every case file, run each case, report PASS / FAIL lines.
+// Shared by selftest.html, selftest.mjs and apptest.html: load every case file, run each case, report PASS / FAIL
+// lines. A case is [name, fn(assert, ctx)]; ctx is whatever the page passes (apptest.html passes {open}).
 const CASE_FILES = ["./lore.cases.js"];
 
 function makeAssert() {
@@ -12,11 +13,11 @@ function makeAssert() {
   return assert;
 }
 
-/** load(name) → Promise<module>. Returns {passed, failed, lines}. */
-export async function run(load) {
+/** load(name) → Promise<module>; opts: {files, ctx}. Returns {passed, failed, lines}. */
+export async function run(load, { files = CASE_FILES, ctx = {} } = {}) {
   const lines = [];
   let passed = 0, failed = 0;
-  for (const file of CASE_FILES) {
+  for (const file of files) {
     let mod;
     try {
       mod = await load(file);
@@ -27,7 +28,7 @@ export async function run(load) {
     }
     for (const [name, fn] of mod.cases) {
       try {
-        await fn(makeAssert());
+        await fn(makeAssert(), ctx);
         passed++;
         lines.push(`PASS  ${name}`);
       } catch (err) {

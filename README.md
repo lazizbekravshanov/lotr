@@ -23,6 +23,9 @@ uv run python -m pipeline build legendarium     # rebuild the Middle-earth layer
 node web/dev/selftest.mjs                       # browser-module self-test (optional; also at /dev/selftest.html)
 ```
 
+With the server running, `/dev/apptest.html` drives the whole site in a frame: the Names switch on every screen,
+the address-bar keys and the realm rules. It runs in the browser and takes about a minute.
+
 ## How it works
 
 Everything usaciv does is kept: 31 public data sources (Census, BEA, BLS, EIA, NOAA, USGS, DoD, NPS, FAA, FEMA,
@@ -39,8 +42,9 @@ This edition adds one layer on top, the legendarium:
   are never edited: `tests/test_upstream_data.py` fails if one is.
 
 In the app, the **Names** button in the top bar switches between Middle-earth names and real names; `#names=real`
-in the address does the same. Click a city, a state or a wonder to see the reason for its name. Click a state's realm
-chip, or search for a realm, to see the realm as a whole.
+in the address does the same. Click a city or a state to see the reason for its name, or point at a wonder (wonder
+cards for touch screens come with a later milestone). Click a realm chip, or search for a realm, to see the realm as
+a whole.
 
 The design is in [docs/superpowers/specs/2026-11-25-reunited-states-design.md](docs/superpowers/specs/2026-11-25-reunited-states-design.md).
 

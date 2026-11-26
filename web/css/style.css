@@ -554,6 +554,3 @@ body.panel-open #lens-area { right: calc(394px + var(--dock-right, 0px)); }
 .lore-real { margin-top: 5px; color: var(--ink-dim); font-size: 12px; }
 .lore-real b { color: var(--ink); font-weight: 600; }
 .chip-realm { border-color: var(--gold-bright); }
-/* Realm features exist only in the legend tongue: hide the Realms lens and its group in the real one. */
-body.tongue-real .lens-btn[data-id="realms"], body.tongue-real .lp-tile[data-id="realms"],
-body.tongue-real .lp-group:has(.lp-tile[data-id="realms"]) { display: none; }
