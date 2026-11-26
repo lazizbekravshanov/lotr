@@ -74,6 +74,13 @@ export const tips = {
     const rule = m.data.wonders?.rules?.find((r) => r.id === x.rule);
     const mt = x.metrics || {};
     const lines = [`<b>${esc(x.name)}</b> ${muted(esc([x.state].filter(Boolean).join("")))}`];
+    // The legendarium (js/lore.js): what the wonder really is, and why it has its name here (or keeps its own).
+    const lore = m.w?.lore;
+    const entry = lore?.ok && lore.tongue === "legend" ? lore.entry("wonders", x.id) : null;
+    if (entry) {
+      if (x.real && x.real.name !== x.name) lines.push(muted(esc(x.real.name)));
+      lines.push(`<span class="lore-basis">${esc(lore.basisLabel(entry.basis))}</span>${esc(entry.why)}`);
+    }
     if (x.kind === "university") {
       lines.push(`${esc(k)} · #${esc(x.rank)} by research spending`);
       if (mt.rd_usd != null) lines.push(`R&amp;D ${usd(mt.rd_usd)} (FY${esc(mt.year)})${mt.federal_usd != null ? `, ${pct(mt.federal_usd / mt.rd_usd, 0)} federal` : ""}`);

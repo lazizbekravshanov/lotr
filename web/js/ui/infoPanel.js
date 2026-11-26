@@ -103,16 +103,31 @@ export const popLine = (o, extra = "") =>
  * Fill and show the panel.
  * spec: {kind: "city"|"state", stripe, title, sub, headExtra, sections: [{title, html}], foot, onClose, onPedia, wire(panel)}
  */
+/**
+ * The "why" of a renamed place (js/lore.js): its basis, the reason, and its real name. "" in the real tongue, for a
+ * place with no lore entry, and for one that keeps its own name.
+ */
+export function loreCard(lore, entry, realName) {
+  if (!lore?.ok || lore.tongue !== "legend" || !entry || entry.basis === "none") return "";
+  return `<div class="lore-card"><span class="lore-basis">${esc(lore.basisLabel(entry.basis))}</span>${esc(entry.why)}
+    <div class="lore-real">Real name: <b>${esc(realName)}</b></div></div>`;
+}
+
+/** A chip that opens a realm (wired by main.js through panel [data-realm]); "" without a realm. */
+export const realmChip = (realm) => (realm
+  ? `<button class="chip chip-realm" data-realm="${esc(realm.id)}" title="Open the realm of ${esc(realm.name)}">${esc(realm.name)}</button>` : "");
+
 export function showPanel(spec) {
   const panel = panelEl();
+  const kindLabel = spec.kindLabel ?? (spec.kind === "state" ? "State" : "City");
   panel.dataset.kind = spec.kind;
-  panel.setAttribute("aria-label", `${spec.kind === "state" ? "State" : "City"}: ${spec.title}`);
+  panel.setAttribute("aria-label", `${kindLabel}: ${spec.title}`);
   panel.innerHTML = `
     <div class="sheet-grip" aria-hidden="true"></div>
     <div class="cp-head">
       <div class="stripe" style="background:${spec.stripe}"></div>
       <button class="icon-btn cp-close" aria-label="Close panel (Esc)" title="Close (Esc)">${icon("close", "✕", { size: 13 })}</button>
-      <div class="cp-kind">${spec.kind === "state" ? "State" : "City"}</div>
+      <div class="cp-kind">${esc(kindLabel)}</div>
       <h2 class="cp-name">${spec.titleHtml ?? esc(spec.title)}</h2>
       ${spec.sub ? `<div class="cp-full">${spec.sub}</div>` : ""}
       ${spec.headExtra || ""}

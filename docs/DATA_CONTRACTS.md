@@ -719,6 +719,58 @@ NOAA events span many states: never add state costs together into a national fig
 helper `disasters.county_declarations(fema_interim, geoids)` gives the per-county counts used by the `disasters` lens,
 the counties.json column and this file, so the three always agree.
 
+## legendarium.json (this edition; blocking, optional)
+
+The Middle-earth layer over the real data: what each state, city, wonder and river is called, which realm each state
+belongs to, and why. Written by `pipeline/build/legendarium.py` from the hand-written tables in `pipeline/lore/` and
+checked against the files above. It adds names and stories only: no number in any other file is changed, and every
+key is one of usaciv's real ids. The browser loads it with the blocking files; when it is missing the site reads
+exactly as usaciv does (`js/lore.js` is then a passthrough). Target size: under 300 kB (the check fails above that).
+
+```
+version: 1, vintage: "lore 0.1 (2026-11)", sources: []
+basis:   {place, likeness, name, new, none: text}       what each basis code means
+ages:    [{id: "ta" | "sa" | "fa", name, sub, default}]  exactly one default
+realms:  [{id, name, label: [str], gloss, people, culture, colors: [fill, accent], device,
+           states: [fips], capital: cbsa,
+           totals: {population, employed, gdp, yields: {<yield key>: number | null}},
+           ranks:  {population, gdp, <yield keys>}}]     1 = largest among realms; null where the total is null
+lands:   {<state fips>: {name, realm: <realm id>, basis, why, label?, ages?}}
+places:  {<cbsa>: {name, basis, why, culture?, realm?, ages?}}
+wonders: {<wonder id>: {name, basis, why, ages?}}
+sites:   [{id, name, real, basis, why, x, y, cell}]      legend sites: x, y in map km; cell = a US land cell
+rivers:  {<river name in world.json>: {name, basis, why}}
+labels:  [{text, sub, kind: "range" | "sea" | "lake" | "waste" | "region" | "foreign", x, y, angle, size}]
+vocab:   {yields: {<yield key>: {name, plain}}}
+```
+
+* Every state is in exactly one realm, and every state has a land. Realm totals are plain sums over the member
+  states' records in states.json; a yield that is null in every member stays null. Nothing is estimated.
+* `basis` is one of `place` (geography), `likeness` (form or character), `name` (the real name already echoes the
+  tale), `new` (this edition's invention, always marked) or `none` (the place keeps its own name: the entry only
+  carries the reason). `why` is never empty.
+* `label` on a land is a shorter form for the map when `name` does not fit. `culture` on a place is given only when
+  it differs from its realm's. `realm` on a place overrides the rule below.
+* A city belongs to the realm of its first-listed state (`cities.json` `states[0]`, its principal city's state) unless
+  its place entry names a `realm`. Its banner cell may lie in another state.
+* `ages` on an entry holds per-Age overrides of that entry's fields (`{"fa": {"name": ...}}`); the default Age uses
+  the entry as written. An Age changes names and lore, never a number.
+* A site whose own hex is water or foreign land (a lake, a coast, falls on a border) takes the nearest US land cell
+  within two rings as `cell`; its `x`, `y` stay true.
+* Positions come from real latitude and longitude through the shipped projection constants
+  (`legendarium.PROJECTION`, the same numbers as `SHIPPED_PROJ` in `web/js/render/art/terrain.js`). The check compares
+  them with known city positions and fails if they disagree by more than 15 km.
+* Not yet in the file (later milestones; the shape leaves room): `hosts`, vocabulary beyond the yields, `moods`,
+  `journeys`, per-Age content.
+
+**In the browser** (`web/js/lore.js`, `app.lore`, `w.lore`): names are swapped in place. `lore.apply()` writes the
+display name for the current tongue (`"legend"` or `"real"`) and Age onto the loaded objects (cities, both state
+lists, `nation.yields` labels, adopted wonders) and keeps the original under a non-enumerable `.real`
+(`{name, short}`, or `{label, description}` for a yield). Modules therefore keep reading `.name`; `obj.real.name` is
+always the real one. In the legend tongue `w.stateColor[i]` is the realm's colour and a banner takes
+`lore.cityColor(city)`; the real tongue restores usaciv's palette. Realm features (the `realms` lens, the realm
+panel, `#realm=`) exist only in the legend tongue.
+
 ## sources.json
 
 A list of `{id, title, publisher, homepage, license, description, used_for, vintage, files: [{file, url, retrieved, sha256, bytes}]}`.
@@ -752,6 +804,15 @@ Extensions live in `web/js/ext/<name>/index.js` and export `install(app)`; `ext/
   promise) and sets `app.data[name]`. Emits `"data"` `{name, data}` when it arrives. `infrastructure`, `military`,
   `wonders`, `trade` are requested automatically right after the first frame; `citizens`, `districts`, `disasters` (and
   `counties`) only when something calls `loadData`. `app.loadCounties()` = `app.loadData("counties")`.
+
+**The legendarium** (`js/lore.js`; see "legendarium.json").
+* `app.lore`: `ok`, `tongue`, `age`, `realms`, `setTongue(t)`, `setAge(a)`, `entry(kind, id)` (kinds `lands`, `places`,
+  `wonders`, `rivers`), `realm(id)`, `realmOfState(ref)`, `realmOfCity(city)`, `cityColor(city)`, `realName(obj)`,
+  `basisLabel(code)`, `aliases()`, `sig()`. `w.lore` is the same object for modules that only receive `w`.
+* The app emits `"lore"` `{tongue, age}` after each change, once names, colours, labels and open panels are redrawn.
+  An active mode is left and re-entered with its parameters, so an extension needs no code of its own for it.
+* `app.selectRealm(id, {fly})` selects a realm (legend tongue only; returns false otherwise).
+* URL keys: `names=real`, `age=sa|fa`, `realm=<id>`; absent means the default. Unknown values are ignored.
 
 **Static map layers** (art that belongs in the cached map, drawn once per cache render):
 

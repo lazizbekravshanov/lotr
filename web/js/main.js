@@ -1,5 +1,6 @@
 import { Camera } from "./camera.js";
-import { prepareWorld, applyLens, stateIndex } from "./world.js";
+import { prepareWorld, applyLens, stateIndex, relabelStates } from "./world.js";
+import { createLore } from "./lore.js";
 import * as mapRender from "./render/map.js";
 import { drawBanners } from "./render/banners.js";
 import { renderTopbar } from "./ui/topbar.js";
@@ -7,6 +8,7 @@ import { showCellTooltip, showCityTooltip, showHtmlTooltip, hideTooltip } from "
 import { initLensDock, formatLensValue, lensValueAt } from "./ui/lenses.js";
 import { openCityPanel, closeCityPanel } from "./ui/cityPanel.js";
 import { openStatePanel } from "./ui/statePanel.js";
+import { openRealmPanel } from "./ui/realmPanel.js";
 import { installSheetSwipe } from "./ui/infoPanel.js";
 import { initPedia } from "./ui/pedia.js";
 import { initYieldReports } from "./ui/yieldReport.js";
@@ -50,14 +52,31 @@ const SELECT_ANIM_MS = 33; // ~30 fps while a state's border highlight animates
 const isMobile = () => matchMedia("(max-width: 700px)").matches;
 
 async function main() {
-  const [world, cities, nation, lenses, sources, resources, statesData] = await Promise.all([
+  const [world, cities, nation, lenses, sources, resources, statesData, legendarium] = await Promise.all([
     loadJSON("world"), loadJSON("cities"), loadJSON("nation"),
     loadJSON("lenses", true), loadJSON("sources", true), loadJSON("resources", true), loadJSON("states", true),
+    loadJSON("legendarium", true),
   ]);
   const lensFile = lenses && Array.isArray(lenses.lenses) ? lenses : { vintage: "", groups: [], lenses: [] };
+  // The legendarium (js/lore.js): Middle-earth names over the real data, switchable to real names. Names are applied
+  // before the world is prepared, so state labels are fitted to the names being shown. Without the file the lore
+  // object is a passthrough and everything below behaves as usaciv does.
+  const lore = createLore(legendarium, { world, states: Array.isArray(statesData) ? statesData : null, cities, nation });
+  lore.apply();
+  const defaultAge = lore.age;
+  // The Realms lens colours every state by its realm. It is built from the legendarium, not read from lenses.json,
+  // and exists only in the legend tongue (css hides it in the real one; see the lore listener below).
+  const realmLens = lore.realmLens(world);
+  if (realmLens) {
+    lensFile.groups = [...(lensFile.groups || []), { id: "realms", name: "Realms", icon: "layers" }];
+    lensFile.lenses = [...lensFile.lenses, realmLens];
+  }
   const w = prepareWorld(world, cities, { resources });
+  w.lore = lore;
+  lore.applyColors(w);
   const state = {
     cities, lens: null, band: null, hoverCell: -1, selectedCity: null, selectedState: null, showResources: !!w.resources,
+    selectedRealm: null, // a realm id (legend tongue only); its states are lit through `highlight`
     highlight: null, // {cells?, cities?, states?, resources?, dimOthers?, color?} (render/overlays.js)
     resourceFilter: null, // {types?: Set<typeId>, minValue?: number}
   };
@@ -118,7 +137,7 @@ async function main() {
   }).join(";");
   const cacheKey = () =>
     `${state.lens?.id ?? "terrain"}|${state.band ? state.band.join(",") : ""}|${state.showResources ? 1 : 0}|${dpr}|${cam.w}x${cam.h}` +
-    `|${state.selectedCity?.id ?? ""}|${resourceFilterSig(state.resourceFilter)}|${layersSig()}`;
+    `|${state.selectedCity?.id ?? ""}|${resourceFilterSig(state.resourceFilter)}|${layersSig()}|${lore.sig()}`;
 
   // lead: [-1|0|1, -1|0|1], the direction a pan ran off the cache; the new cache reaches further that way (and less
   // the other way, same size), so a steady pan re-renders less often.
@@ -536,6 +555,7 @@ async function main() {
     const parts = ["Hex map of the contiguous United States", state.lens ? `coloured by the ${state.lens.name} lens` : "showing terrain"];
     if (state.selectedCity) parts.push(`${state.selectedCity.name} selected`);
     else if (state.selectedState != null) parts.push(`${stateName(state.selectedState)} selected`);
+    else if (state.selectedRealm) parts.push(`the realm of ${lore.realm(state.selectedRealm)?.name} selected`);
     canvas.setAttribute("aria-label", parts.join(", "));
   }
 
@@ -545,10 +565,19 @@ async function main() {
     onPedia: () => pedia.open("Yields"),
     onState: (idx) => selectState(idx, { fly: true }),
     onCity: (city) => selectCity(city, { fly: true }),
+    onRealm: (id) => app.selectRealm?.(id),
   });
+
+  // A realm selection lights its states through state.highlight; any other selection takes that light away.
+  function dropRealm() {
+    if (!state.selectedRealm) return;
+    state.selectedRealm = null;
+    state.highlight = null;
+  }
 
   function selectCity(city, { fly = true } = {}) {
     if (!city) return clearSelection();
+    dropRealm();
     state.selectedCity = city;
     state.selectedState = null;
     app.panels.city(city, panelCtx());
@@ -559,6 +588,7 @@ async function main() {
 
   function selectState(idx, { fly = false } = {}) {
     if (idx == null || !w.raw.states[idx]) return clearSelection();
+    dropRealm();
     state.selectedCity = null;
     state.selectedState = idx;
     app.panels.state(idx, panelCtx());
@@ -567,8 +597,25 @@ async function main() {
     afterSelect();
   }
 
+  /** Select a realm of the legendarium by id (legend tongue only): its panel, its states lit, the rest dimmed. */
+  function selectRealm(id, { fly = true } = {}) {
+    const realm = legendTongue() ? lore.realm(id) : null;
+    if (!realm) return false;
+    state.selectedCity = null;
+    state.selectedState = null;
+    state.selectedRealm = realm.id;
+    state.highlight = { states: new Set(realm.states.map((f) => stateIndex(w, f)).filter((i) => i >= 0)), dimOthers: true };
+    openRealmPanel(realm, panelCtx());
+    const b = fly ? highlightBounds(w, state.highlight) : null;
+    if (b) fitBounds(b.x0, b.y0, b.x1, b.y1, { maxScale: 2.2 });
+    announce(`The realm of ${realm.name} selected.`);
+    afterSelect();
+    return true;
+  }
+
   function clearSelection() {
-    const had = state.selectedCity || state.selectedState != null;
+    const had = state.selectedCity || state.selectedState != null || state.selectedRealm;
+    dropRealm();
     state.selectedCity = null;
     state.selectedState = null;
     app.panels.close();
@@ -582,7 +629,9 @@ async function main() {
     describeCanvas();
     requestDraw();
     url.schedule();
-    const sig = state.selectedCity ? `c${state.selectedCity.id}` : state.selectedState != null ? `s${state.selectedState}` : "";
+    // A realm is not a selection extensions know: to them it reads as "nothing selected".
+    const sig = state.selectedCity ? `c${state.selectedCity.id}` : state.selectedState != null ? `s${state.selectedState}`
+      : state.selectedRealm ? `r${state.selectedRealm}` : "";
     if (sig !== lastSelSig) {
       lastSelSig = sig;
       events.emit("select", state.selectedCity ? { kind: "city", city: state.selectedCity }
@@ -654,6 +703,54 @@ async function main() {
     },
   });
 
+  // --- the legendarium: tongue and Age ---------------------------------------------------------------------------
+  // #names=real shows real names (absent = Middle-earth names); #age=sa|fa picks an Age other than the default.
+  // Unknown values are ignored. Both keys do nothing when there is no legendarium.
+  url.register("names", {
+    get: () => (lore.ok && lore.tongue === "real" ? "real" : null),
+    set: (v) => { lore.setTongue(v === "real" ? "real" : "legend"); },
+  });
+  url.register("age", {
+    get: () => (lore.ok && lore.age !== defaultAge ? lore.age : null),
+    set: (v) => { if (!lore.setAge(v) && v == null) lore.setAge(defaultAge); },
+  });
+  // #realm=<id> selects a realm (after names= has been applied: realms exist only in the legend tongue).
+  url.register("realm", {
+    get: () => state.selectedRealm,
+    set: (v) => {
+      if (v && v !== state.selectedRealm && selectRealm(v, { fly: !url.value("at") })) return;
+      if (state.selectedRealm && v !== state.selectedRealm) clearSelection();
+    },
+  });
+  // Wonders load after the first frame; their names are taken over before the map layers see them.
+  events.on("data", ({ name, data }) => { if (name === "wonders") lore.adopt("wonders", data); });
+  lore.on(() => {
+    // Realm features exist only in the legend tongue.
+    document.body.classList.toggle("tongue-real", lore.tongue === "real");
+    if (lore.tongue === "real") {
+      if (state.selectedRealm) clearSelection();
+      if (state.lens?.id === "realms") setLens(null);
+    }
+    lore.applyColors(w);
+    relabelStates(w);
+    search.rebuild?.();
+    renderTopbar(nation);
+    // Panels, the City View and the Advisors render names once: show them again in the new tongue.
+    if (state.selectedCity && !modes.mode) app.panels.city(state.selectedCity, panelCtx());
+    else if (state.selectedState != null) app.panels.state(state.selectedState, panelCtx());
+    else if (state.selectedRealm) openRealmPanel(lore.realm(state.selectedRealm), panelCtx());
+    const mode = modes.mode, params = modes.modeParams;
+    if (mode) {
+      modes.setMode(null);
+      modes.setMode(mode, params);
+    }
+    app.invalidate();
+    rebuildMinimap();
+    describeCanvas();
+    url.schedule();
+    events.emit("lore", { tongue: lore.tongue, age: lore.age });
+  });
+
   // --- top bar, search, share, help ------------------------------------------------------------------------------
   const setBtn = (id, html) => {
     const b = document.getElementById(id);
@@ -667,11 +764,16 @@ async function main() {
   if (searchIc) searchIc.innerHTML = icon("search", "🔍", { size: 14 });
   document.querySelector(".search-kbd")?.setAttribute("title", "Press / or Ctrl K to search");
 
+  const legendTongue = () => lore.ok && lore.tongue === "legend";
   const search = initSearch({
     cities,
-    states: w.raw.states.map((s, i) => ({ name: states?.[i]?.name || s.name, abbr: s.abbr, population: states?.[i]?.population })),
+    states: () => w.raw.states.map((s, i) => ({ name: states?.[i]?.name || s.name, abbr: s.abbr, population: states?.[i]?.population })),
+    realms: () => (legendTongue() ? lore.realms : []),
+    aliases: () => lore.aliases(),
+    stateWord: () => (legendTongue() ? "Land" : "State"),
     onPick(r) {
       if (r.kind === "city") selectCity(r.city, { fly: true });
+      else if (r.kind === "realm") app.selectRealm?.(r.id);
       else selectState(r.index, { fly: true });
     },
   });
@@ -688,6 +790,25 @@ async function main() {
     toast,
     // A dock opened, closed or changed width: the usable map area changed.
     onLayout: () => { onDocksChanged(); requestDraw(); events.emit("resize", { w: cam.w, h: cam.h, dpr, docks: true }); },
+  });
+
+  // The Names switch: Middle-earth names or real names, everywhere (only when there is a legendarium).
+  const namesBtn = lore.ok ? ui.addTopButton({
+    id: "btn-names", icon: "book", label: "Names", title: "Switch between Middle-earth names and real names",
+    onClick: () => lore.setTongue(lore.tongue === "legend" ? "real" : "legend"),
+  }) : null;
+  function renderNamesButton() {
+    if (!namesBtn) return;
+    const legend = lore.tongue === "legend";
+    namesBtn.setAttribute("aria-pressed", String(legend));
+    namesBtn.setAttribute("aria-label", legend ? "Names: Middle-earth. Switch to real names" : "Names: real. Switch to Middle-earth names");
+    const lbl = namesBtn.querySelector(".lbl");
+    if (lbl) lbl.textContent = legend ? "Middle-earth" : "Real names";
+  }
+  renderNamesButton();
+  lore.on(() => {
+    renderNamesButton();
+    announce(lore.tongue === "legend" ? "Showing Middle-earth names." : "Showing real names.");
   });
 
   // Renders the current view (minus panels) into an offscreen canvas for the share image.
@@ -1038,7 +1159,7 @@ async function main() {
       else if (owner >= 0) {
         // On phones the bottom sheet would hide the state, so bring it into the visible part of the map.
         if (owner !== state.selectedState) selectState(owner, { fly: isMobile() });
-      } else if (state.selectedCity || state.selectedState != null) clearSelection();
+      } else if (state.selectedCity || state.selectedState != null || state.selectedRealm) clearSelection();
     }, DOUBLE_MS);
     // A click changes what is on screen (a panel, a mode, a flight), so drop the tooltip until the pointer moves again.
     hideTooltip();
@@ -1094,7 +1215,7 @@ async function main() {
     if (pedia.isOpen) return pedia.close();
     if (modes.escape()) return; // the active mode (e.g. the City view) goes before the panels
     if (events.emit("escape", {})) return;
-    if (state.selectedCity || state.selectedState != null) return clearSelection();
+    if (state.selectedCity || state.selectedState != null || state.selectedRealm) return clearSelection();
   }
 
   window.addEventListener("keydown", (e) => {
@@ -1172,6 +1293,7 @@ async function main() {
     loadData,
     loadCounties: () => loadData("counties"),
     w, cam, state, cityById, lensById,
+    lore, // js/lore.js: tongue, Age, realm and entry lookups; app.on("lore", fn) fires after each change
     // drawing
     requestDraw,
     invalidate() { cache.key = null; invalidateHighlight(); requestDraw(); },
@@ -1214,6 +1336,7 @@ async function main() {
       return idx >= 0 ? selectState(idx, { fly }) : clearSelection();
     },
     clearSelection,
+    selectRealm: (id, { fly = true } = {}) => selectRealm(id, { fly }), // legend tongue only; false if it cannot
     setLens(ref) {
       const lens = ref == null ? null : typeof ref === "string" ? lensById.get(ref) || null : ref;
       if (lens !== state.lens) setLens(lens);

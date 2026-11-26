@@ -301,7 +301,9 @@ function computeStateLabels(w) {
       return pick;
     };
     let pick = bestFit(name);
-    // Names that cannot be set at a readable size fall back to the postal code (capped, so it stays modest).
+    // Names that cannot be set at a readable size fall back to a shorter form if the state has one (`short`, set
+    // by js/lore.js for long land names), then to the postal code (capped, so it stays modest).
+    if (pick.size < 18 && states[s].short) pick = bestFit(String(states[s].short).toUpperCase());
     if (pick.size < 18 && states[s].abbr) {
       pick = bestFit(states[s].abbr);
       pick.size = Math.min(pick.size, 40);
@@ -309,6 +311,11 @@ function computeStateLabels(w) {
     labels.push({ state: s, text: pick.text, x: pick.x, y: pick.y, angle: pick.angle, size: pick.size, depth: dist[a] });
   }
   return labels;
+}
+
+/** Fit the state labels again, after the states' display names changed (js/lore.js). */
+export function relabelStates(w) {
+  w.stateLabels = computeStateLabels(w);
 }
 
 // State-name letter spacing (fraction of the font size); map.js draws with the same values.

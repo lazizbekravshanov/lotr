@@ -647,13 +647,15 @@ export function drawBanners(ctx, cam, w, state, yields, nation = state.nation) {
       if (tiered && city !== hov) tiers++;
     }
 
-    const col = w.stateColor[w.raw.owner[city.cell]] || [190, 190, 190];
+    // In the legend tongue a city wears its realm's colour, which is its first-listed state's, not always the
+    // colour of the hex its banner sits on (js/lore.js cityColor).
+    const col = w.lore?.cityColor(city) || w.stateColor[w.raw.owner[city.cell]] || [190, 190, 190];
     const selected = sel === city;
     const dimmed = !selected && w.dim && w.dim[city.cell];
     const alpha = Math.min(focused || city === hov ? 1 : FOCUS_FADE, dimmed ? 0.5 : 1);
     const badge = tab ? badge0 : null;
     const flags = { selected, showYields: tiered, ptr, badge };
-    const key = `${city.id}|${L.name}|${tiered ? 1 : 0}|${selected ? 1 : 0}|${scale}|${col.join(",")}|${width}|${ptr ?? ""}|${badge ? `${badge.label}|${badge.color}` : ""}`;
+    const key = `${city.id}|${city.name}|${L.name}|${tiered ? 1 : 0}|${selected ? 1 : 0}|${scale}|${col.join(",")}|${width}|${ptr ?? ""}|${badge ? `${badge.label}|${badge.color}` : ""}`;
     const sp = bannerSprite(key, m, L, col, width, height, scale, flags);
     if (alpha < 1) ctx.globalAlpha = alpha;
     if (sp) {

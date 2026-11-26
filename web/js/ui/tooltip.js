@@ -11,7 +11,9 @@ export function showCellTooltip(mx, my, w, i, lens, showResources = true) {
   const raw = w.raw;
   const lines = [];
   const city = w.cityByCell.get(i);
-  if (city) lines.push(`<b>${esc(city.name)}</b> <span class="muted">· ${popShort(city.population)} people</span>`);
+  // In the legend tongue a renamed place also says what it really is (js/lore.js keeps that under .real).
+  const also = (o) => (o?.real && o.real.name !== o.name ? ` <span class="muted">(${esc(o.real.name)})</span>` : "");
+  if (city) lines.push(`<b>${esc(city.name)}</b>${also(city)} <span class="muted">· ${popShort(city.population)} people</span>`);
 
   const wt = w.water[i];
   if (wt) {
@@ -26,7 +28,7 @@ export function showCellTooltip(mx, my, w, i, lens, showResources = true) {
   const o = raw.owner[i];
   if (o >= 0) {
     const county = raw.county[i] >= 0 ? raw.counties[raw.county[i]].name + ", " : "";
-    lines.push(`${esc(county)}${esc(raw.states[o].name)}`);
+    lines.push(`${esc(county)}${esc(raw.states[o].name)}${also(raw.states[o])}`);
     if (lens) lines.push(`${glyph(lens, 13)} ${esc(lens.name)}: <b>${formatLensValue(lens, lens.values[i])}</b>`);
   } else if (o === FOREIGN) {
     lines.push(`<span class="muted">Beyond the borders (not mapped)</span>`);
@@ -58,7 +60,9 @@ export function showHtmlTooltip(mx, my, content) {
 }
 
 export function showCityTooltip(mx, my, city) {
-  show(mx, my, `<b>${esc(city.full)}</b><br><span class="muted">Click to open the city</span>`);
+  const renamed = city.real && city.real.name !== city.name;
+  const head = renamed ? `<b>${esc(city.name)}</b><br><span class="muted">${esc(city.full)}</span>` : `<b>${esc(city.full)}</b>`;
+  show(mx, my, `${head}<br><span class="muted">Click to open the city</span>`);
 }
 
 function show(mx, my, html) {

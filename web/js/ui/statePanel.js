@@ -1,7 +1,7 @@
 import { css } from "../color.js";
 import { esc, popShort } from "../format.js";
 import { isCapital } from "../world.js";
-import { yieldGrid, amenities, industries, gdpRow, popLine, growthSpan, showPanel } from "./infoPanel.js";
+import { yieldGrid, amenities, industries, gdpRow, popLine, growthSpan, showPanel, loreCard, realmChip } from "./infoPanel.js";
 
 /**
  * Opens the panel for state `idx` (index into world.json states / states.json).
@@ -18,6 +18,13 @@ export function openStatePanel(idx, ctx) {
   const name = st.name || geo.name || "State";
   const abbr = st.abbr || geo.abbr || "";
   const count = ctx.states?.length || w.raw.states.length;
+  // In the legend tongue the state is a land of a realm: say which, why it has its name, and what it really is.
+  const lore = w.lore;
+  const legend = lore?.ok && lore.tongue === "legend";
+  const realName = lore?.realName(geo) || name;
+  const land = legend ? lore.entry("lands", geo.fips) : null;
+  const why = loreCard(lore, land, realName);
+  const realm = legend ? lore.realmOfState(idx) : null;
 
   const cities = (ctx.cities || []).filter((c) => (c.states || []).includes(abbr)).slice(0, 8);
   const cityRows = cities.length
@@ -34,11 +41,13 @@ export function openStatePanel(idx, ctx) {
   const hasEcon = st.population != null || st.yields;
   showPanel({
     kind: "state",
+    kindLabel: land ? "Land" : "State",
     stripe: css(w.stateColor[idx] || [190, 190, 190]),
     title: name,
-    sub: `${esc(abbr)}${geo.fips ? ` · FIPS ${esc(geo.fips)}` : ""}`,
+    sub: `${realName !== name ? `${esc(realName)} · ` : ""}${esc(abbr)}${geo.fips ? ` · FIPS ${esc(geo.fips)}` : ""}${realm ? `<div class="chips">${realmChip(realm)}</div>` : ""}`,
     headExtra: hasEcon ? popLine(st, growthSpan(st, n)) : "",
     sections: [
+      why && { title: "Why this name", html: why },
       st.yields && { title: "Yields · rank among states", html: `<div class="yield-grid">${yieldGrid(nation, st.yields, st.ranks, count)}</div>` },
       hasEcon && { title: "Amenities &amp; Housing", html: amenities(st, n) + gdpRow(st) },
       st.jobs && { title: "Top industries · where people work", html: industries(st, nation, 8) },
@@ -49,6 +58,7 @@ export function openStatePanel(idx, ctx) {
     onClose: ctx.onClose,
     onPedia: ctx.onPedia,
     wire(panel) {
+      panel.querySelectorAll("[data-realm]").forEach((b) => (b.onclick = () => ctx.onRealm?.(b.dataset.realm)));
       panel.querySelectorAll("[data-city]").forEach((b) => {
         b.onclick = () => {
           const c = ctx.cities.find((x) => x.id === b.dataset.city);

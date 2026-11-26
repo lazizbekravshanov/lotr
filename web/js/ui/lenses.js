@@ -202,7 +202,8 @@ export function initLensDock(opts) {
   function sourceLine(lens) {
     const src = sources.find((s) => s.id === lens.source);
     const name = src ? src.publisher && src.title.length > 44 ? src.publisher : src.title : lens.source;
-    const vintage = src?.vintage || lensFile?.vintage || "";
+    // A lens may state its own vintage ("" for none): the Realms lens is not census data (js/lore.js).
+    const vintage = lens.vintage ?? (src?.vintage || lensFile?.vintage || "");
     return [name, vintage].filter(Boolean).map(esc).join(" · ");
   }
 

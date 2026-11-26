@@ -159,8 +159,17 @@ def cmd_list():
         print(f"  {name:20} needs {', '.join(mod.REQUIRES) or '-'}")
 
 
+class RevalidatingHandler(http.server.SimpleHTTPRequestHandler):
+    """Static files with Cache-Control: no-cache, so a browser revalidates each one (a cheap 304 when unchanged)
+    instead of keeping an edited script or data file from its cache for days."""
+
+    def end_headers(self):
+        self.send_header("Cache-Control", "no-cache")
+        super().end_headers()
+
+
 def cmd_serve(port=8765):
-    handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(WEB))
+    handler = functools.partial(RevalidatingHandler, directory=str(WEB))
     with http.server.ThreadingHTTPServer(("127.0.0.1", port), handler) as srv:
         print(f"serving web/ at http://127.0.0.1:{port}")
         srv.serve_forever()

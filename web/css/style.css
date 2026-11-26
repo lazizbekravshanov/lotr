@@ -547,3 +547,13 @@ body.panel-open #lens-area { right: calc(394px + var(--dock-right, 0px)); }
   .yr-total > b { font-size: 30px; }
   .yr-row { padding: 7px 8px; }
 }
+
+/* The legendarium (js/lore.js): the reason for a name in panels and tooltips. */
+.lore-card { font-size: 12.5px; line-height: 1.45; color: var(--ink); }
+.lore-basis { display: inline-block; font: 600 9.5px var(--sans); letter-spacing: .12em; text-transform: uppercase; color: var(--gold-bright); border: 1px solid var(--line); border-radius: 3px; padding: 1px 5px; margin-right: 6px; vertical-align: 1px; white-space: nowrap; }
+.lore-real { margin-top: 5px; color: var(--ink-dim); font-size: 12px; }
+.lore-real b { color: var(--ink); font-weight: 600; }
+.chip-realm { border-color: var(--gold-bright); }
+/* Realm features exist only in the legend tongue: hide the Realms lens and its group in the real one. */
+body.tongue-real .lens-btn[data-id="realms"], body.tongue-real .lp-tile[data-id="realms"],
+body.tongue-real .lp-group:has(.lp-tile[data-id="realms"]) { display: none; }

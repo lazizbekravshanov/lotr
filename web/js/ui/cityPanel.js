@@ -1,7 +1,7 @@
 import { css } from "../color.js";
 import { esc } from "../format.js";
 import { isCapital } from "../world.js";
-import { yieldGrid, amenities, industries, gdpRow, popLine, growthSpan, showPanel, hidePanel } from "./infoPanel.js";
+import { yieldGrid, amenities, industries, gdpRow, popLine, growthSpan, showPanel, hidePanel, loreCard, realmChip } from "./infoPanel.js";
 
 /**
  * ctx: {w, nation, onClose, onPedia, onState(stateIndex)}
@@ -10,7 +10,10 @@ export function openCityPanel(city, ctx) {
   const { w, nation } = ctx;
   const n = nation.nation;
   const owner = city.cell != null ? w.raw.owner[city.cell] : -1;
-  const col = css(w.stateColor[owner] || [190, 190, 190]);
+  const lore = w.lore;
+  const legend = lore?.ok && lore.tongue === "legend";
+  const col = css(lore?.cityColor(city) || w.stateColor[owner] || [190, 190, 190]);
+  const why = loreCard(lore, lore?.entry("places", city.id), lore?.realName(city));
 
   // The city's states as links to their state panels.
   const states = (city.states || [])
@@ -18,7 +21,7 @@ export function openCityPanel(city, ctx) {
     .map(({ abbr, i }) => (i >= 0 && ctx.onState
       ? `<button class="chip" data-state="${i}" title="Open ${esc(w.raw.states[i].name)}">${esc(abbr)}</button>`
       : `<span class="chip">${esc(abbr)}</span>`))
-    .join("");
+    .join("") + (legend ? realmChip(lore.realmOfCity(city)) : "");
 
   const growth = growthSpan(city, n);
 
@@ -30,6 +33,7 @@ export function openCityPanel(city, ctx) {
     sub: `${esc(city.full || "")}${states ? `<div class="chips">${states}</div>` : ""}`,
     headExtra: popLine(city, growth),
     sections: [
+      why && { title: "Why this name", html: why },
       { title: "Yields", html: `<div class="yield-grid">${yieldGrid(nation, city.yields)}</div>` },
       { title: "Amenities &amp; Housing", html: amenities(city, n) + gdpRow(city) },
       { title: "Districts · where people work", html: industries(city, nation) },
@@ -40,6 +44,7 @@ export function openCityPanel(city, ctx) {
     onPedia: ctx.onPedia,
     wire(panel) {
       panel.querySelectorAll("[data-state]").forEach((b) => (b.onclick = () => ctx.onState(+b.dataset.state)));
+      panel.querySelectorAll("[data-realm]").forEach((b) => (b.onclick = () => ctx.onRealm?.(b.dataset.realm)));
     },
   });
 }

@@ -1,57 +1,42 @@
-// Top-bar search over cities and states: prefix matches first, then word-prefix, then substring; ties by population.
+// Top-bar search over cities, states and (in the legend tongue) realms. The matching rules live in searchIndex.js:
+// prefix matches first, then word-prefix, then substring; ties by population; a renamed place answers to both names.
 import { esc, popShort } from "../format.js";
 import { icon } from "../ui/icon.js";
+import { buildEntries, queryEntries } from "./searchIndex.js";
 
-const norm = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-const MAX = 8;
+const value = (v) => (typeof v === "function" ? v() : v);
 
 /**
- * opts: {cities, states (list of {name, abbr, population?}), onPick({kind:'city'|'state', city?, index?})}
+ * opts: {cities, states (list of {name, abbr, population?}, or a function returning it), realms?, aliases?,
+ *        stateWord? (each a value or a function, read again on rebuild()),
+ *        onPick({kind: 'city' | 'state' | 'realm', city?, index?, id?})}
+ * Returns {focus(), close(), isOpen, rebuild()}: call rebuild() after display names change (js/lore.js).
  */
 export function initSearch(opts) {
   const input = document.getElementById("search-input");
   const box = document.getElementById("search-results");
-  if (!input || !box) return { focus() {}, close() {}, get isOpen() { return false; } };
+  if (!input || !box) return { focus() {}, close() {}, rebuild() {}, get isOpen() { return false; } };
   // The full placeholder only fits the wide search box; narrower ones say just "Search".
   const narrow = matchMedia("(max-width: 1120px)");
   const setPlaceholder = () => (input.placeholder = narrow.matches ? "Search" : "Search cities & states");
   setPlaceholder();
   narrow.addEventListener?.("change", setPlaceholder);
 
-  const entries = [];
-  for (const c of opts.cities || []) {
-    entries.push({ kind: "city", city: c, name: c.name, n: norm(c.name), full: norm(c.full), pop: c.population || 0,
-      sub: c.full || "", label: c.name });
-  }
-  (opts.states || []).forEach((s, index) => {
-    if (!s) return;
-    entries.push({ kind: "state", index, name: s.name, n: norm(s.name), full: norm(s.abbr), abbr: (s.abbr || "").toLowerCase(),
-      pop: s.population || 0, sub: "State", label: s.name });
-  });
-
+  let entries = [];
   let results = [];
   let sel = -1;
+  const query = (q) => queryEntries(entries, q);
 
-  function score(e, q) {
-    if (e.abbr && e.abbr === q) return 0;
-    if (e.n.startsWith(q)) return e.n === q ? 0 : 1;
-    if ((" " + e.n).includes(" " + q)) return 2;
-    if ((" " + e.full).includes(" " + q)) return 3;
-    if (e.n.includes(q)) return 4;
-    if (e.full.includes(q)) return 5;
-    return -1;
-  }
-
-  function query(q) {
-    q = norm(q);
-    if (!q) return [];
-    const out = [];
-    for (const e of entries) {
-      const s = score(e, q);
-      if (s >= 0) out.push([s, e]);
+  function rebuild() {
+    entries = buildEntries({
+      cities: opts.cities, states: value(opts.states), realms: value(opts.realms), aliases: value(opts.aliases),
+      stateWord: value(opts.stateWord),
+    });
+    if (!box.hidden && input.value.trim()) {
+      results = query(input.value);
+      sel = results.length ? 0 : -1;
+      render();
     }
-    out.sort((a, b) => a[0] - b[0] || b[1].pop - a[1].pop);
-    return out.slice(0, MAX).map((x) => x[1]);
   }
 
   function position() {
@@ -73,8 +58,8 @@ export function initSearch(opts) {
     }
     box.innerHTML = results
       .map((e, i) => `<div class="sr-item ${i === sel ? "sel" : ""}" role="option" id="sr-${i}" aria-selected="${i === sel}" data-i="${i}">
-        <span class="sr-ic">${e.kind === "state" ? icon("terrain", "🗺️", { size: 16 }) : icon("pop", "🏙️", { size: 16 })}</span>
-        <span class="sr-main"><b>${esc(e.label)}</b><span class="sr-sub">${esc(e.sub)}</span></span>
+        <span class="sr-ic">${e.kind === "city" ? icon("pop", "🏙️", { size: 16 }) : icon(e.kind === "realm" ? "layers" : "terrain", "🗺️", { size: 16 })}</span>
+        <span class="sr-main"><b>${esc(e.label)}</b><span class="sr-sub">${esc(e.altLabel && !e.sub.includes(e.altLabel) ? `${e.altLabel} · ${e.sub}` : e.sub)}</span></span>
         <span class="sr-pop">${e.pop ? popShort(e.pop) : ""}</span></div>`)
       .join("");
     box.hidden = false;
@@ -90,7 +75,7 @@ export function initSearch(opts) {
     close();
     input.value = "";
     input.blur();
-    opts.onPick(e.kind === "city" ? { kind: "city", city: e.city } : { kind: "state", index: e.index });
+    opts.onPick(e.kind === "city" ? { kind: "city", city: e.city } : e.kind === "realm" ? { kind: "realm", id: e.id } : { kind: "state", index: e.index });
   }
 
   function close() {
@@ -149,8 +134,10 @@ export function initSearch(opts) {
     }
   });
   window.addEventListener("resize", () => !box.hidden && position());
+  rebuild();
 
   return {
+    rebuild,
     focus() {
       input.focus();
       input.select();
