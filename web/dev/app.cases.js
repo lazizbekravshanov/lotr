@@ -98,6 +98,29 @@ export const cases = [
     assert.equal(doc.activeElement?.id, "btn-names", "focus stays on the Names button");
   }],
 
+  ["a frame that arrives late leaves focus where it was put", async (assert, { open }) => {
+    const { app, win, doc } = await open(`city=${NYC}&view=city`);
+    await until(() => app.mode === "city" && app.cityView.city?.id === NYC, "the City View");
+    // Hold animation frames back, as a hidden or busy page does, and run them when the case says.
+    const held = [];
+    const raf = win.requestAnimationFrame;
+    win.requestAnimationFrame = (cb) => held.push(cb) + 1e9;
+    const release = () => { for (const cb of held.splice(0)) cb(win.performance.now()); };
+    try {
+      app.cityView.open(app.cityById.get(PHILLY));
+      await until(() => app.cityView.city?.id === PHILLY, "Philadelphia");
+      release();
+      assert(doc.activeElement?.classList.contains("cv-name"), "with nothing else focused, the new city's name takes focus");
+      app.cityView.open(app.cityById.get(INDY));
+      await until(() => app.cityView.city?.id === INDY, "Indianapolis");
+      pressNames(doc);
+      release();
+      assert.equal(doc.activeElement?.id, "btn-names", "the late frame must not take focus off the Names button");
+    } finally {
+      win.requestAnimationFrame = raf;
+    }
+  }],
+
   ["the City View says why a city has its name", async (assert, { open }) => {
     let { app, doc } = await open(`city=${INDY}&view=city`);
     await until(() => app.mode === "city" && doc.querySelector(".cv-dock .cv-name"), "the City View");

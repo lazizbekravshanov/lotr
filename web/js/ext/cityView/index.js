@@ -168,7 +168,14 @@ export async function install(app) {
     app.requestDraw();
     if (!cv.timer) startAnim();
     if (!same) {
-      requestAnimationFrame(() => cv.dock?.querySelector(".cv-name")?.focus({ preventScroll: true }));
+      // Focus the city's name once the dock is up, unless focus has moved on meanwhile (a key press, a click): a
+      // frame can arrive late on a busy or hidden page, and must not pull focus away from where it was put.
+      const was = document.activeElement;
+      requestAnimationFrame(() => {
+        const now = document.activeElement;
+        if (now && now !== was && now !== document.body) return;
+        cv.dock?.querySelector(".cv-name")?.focus({ preventScroll: true });
+      });
     }
   }
 

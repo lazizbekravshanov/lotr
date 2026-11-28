@@ -168,9 +168,21 @@ class RevalidatingHandler(http.server.SimpleHTTPRequestHandler):
         super().end_headers()
 
 
+class DevServer(http.server.ThreadingHTTPServer):
+    """A thread per connection, and room to queue a page load's connections. Every load revalidates about 80 files at
+    once, each over its own connection; with Python's default listen backlog of 5, macOS resets the overflow, so a
+    module import fails and the page never starts. The kernel caps the number at its own limit (somaxconn)."""
+
+    request_queue_size = 1024
+
+
+def make_server(port, directory=WEB):
+    handler = functools.partial(RevalidatingHandler, directory=str(directory))
+    return DevServer(("127.0.0.1", port), handler)
+
+
 def cmd_serve(port=8765):
-    handler = functools.partial(RevalidatingHandler, directory=str(WEB))
-    with http.server.ThreadingHTTPServer(("127.0.0.1", port), handler) as srv:
+    with make_server(port) as srv:
         print(f"serving web/ at http://127.0.0.1:{port}")
         srv.serve_forever()
 
