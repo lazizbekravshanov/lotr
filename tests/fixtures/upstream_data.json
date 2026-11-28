@@ -1,0 +1,20 @@
+{
+ "note": "sha256 of the upstream usaciv data files; see tests/test_upstream_data.py",
+ "files": {
+  "world.json": "0a466a717f49933c7cc379ad372ca1871aa5925b9bf8ee68834d9ac1718dccea",
+  "cities.json": "142bb0eb795a8a690c6c686aaeceaa90b29461c1c3683ae7d122a267ccee49f8",
+  "states.json": "c46b613d7872d065a0be437a983f617b47bb1f89bc0c8537d471835ac6dee772",
+  "nation.json": "f6fa65e8cb2da2598c44273d94c080ad187cc0e866fd8509760c70f682afd863",
+  "counties.json": "7b844e4b44a71413e1db8150da3bb746d6515089bead2e06633c783116513865",
+  "lenses.json": "7aa1c50e3fa944cd99a54e2ea302025dee6c94b42ad9806ceab826d15db38cc2",
+  "resources.json": "434bb0cff520dee68d44106432301c4e5bb8df9e01c40c2d2a75e05e57c2c32d",
+  "infrastructure.json": "3bbdd61d0f7bdda1a0bbb87c898c03fadf9733a2ccd4e31a3a8af9749f3219fc",
+  "military.json": "9db5cc6e1bbf1a059748e3dee986b5b43196bf029cdfeceeae9c8c1e2d5376ed",
+  "wonders.json": "6be1d047f73f9357a5b4551437cc60e6553755e4817cfd1b265389c33afc1278",
+  "trade.json": "caa1d1d52ed60d70719a343d96196c2fe80b57dfea31add0f51b66943518f358",
+  "districts.json": "4affd1fa7ba83bb42da5476029ec3dd19c4d9b7f11f074ae173957c1ebc335b4",
+  "citizens.json": "7e037fc96dd4f09c739b4b4bb314462a9ff6f2793e9aac72fbdfa2e081d834d1",
+  "disasters.json": "c16355c3fd769ac8860d544524cad763ed4022f5bd2affec0584dfafe2bde0bc",
+  "sources.json": "cafe0a9badeab1ce168c571b0966908c18185c24c5bd03414383376231166759"
+ }
+}

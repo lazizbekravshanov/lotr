@@ -1,0 +1,392 @@
+<title>Reunited States Design Atlas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=IM+Fell+English+SC&family=Uncial+Antiqua&family=Noto+Sans+Runic&display=swap">
+<style>
+/* Layout: one reading column of plates, like an atlas: the map plate first, then the argument for it. */
+:root{
+  --bg:#e6e5db; --panel:#f1f0e7; --fg:#19221e; --dim:#566058; --rule:rgba(25,34,30,.2);
+  --red:#a52e1b; --gold:#84651a; --chip:#dbd9cc; --night:#0e1512;
+  --display:"IM Fell English SC","Iowan Old Style",Georgia,serif;
+  --uncial:"Uncial Antiqua","IM Fell English SC",Georgia,serif;
+  --text:"EB Garamond","Iowan Old Style",Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1512;--panel:#151f1a;--fg:#e8e2cf;--dim:#a9a590;--rule:rgba(232,226,207,.17);--red:#e2633f;--gold:#d9b25c;--chip:#1d2a24;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1512;--panel:#151f1a;--fg:#e8e2cf;--dim:#a9a590;--rule:rgba(232,226,207,.17);--red:#e2633f;--gold:#d9b25c;--chip:#1d2a24;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:18px/1.5 var(--text)}
+.wrap{max-width:1160px;margin:0 auto;padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:44px}
+h1,h2,h3{margin:0;font-weight:400;text-wrap:balance}
+h1{font:400 clamp(34px,6vw,60px)/1.05 var(--uncial);letter-spacing:.01em}
+h2{font:400 clamp(22px,3vw,29px)/1.15 var(--display);letter-spacing:.06em;color:var(--red)}
+h3{font:400 18px/1.2 var(--display);letter-spacing:.05em}
+p{margin:0;max-width:66ch}
+.eyebrow{font:600 12px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.lede{font-size:21px;color:var(--fg)}
+.dim{color:var(--dim)}
+section{display:flex;flex-direction:column;gap:16px}
+header{display:flex;flex-direction:column;gap:12px}
+.plate{background:var(--panel);border:1px solid var(--rule);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.bar{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font:600 12px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:3px;overflow:hidden}
+.seg button,.chip{font:600 12px/1 var(--sans);letter-spacing:.04em;color:var(--fg);background:transparent;border:0;padding:8px 11px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
+.seg button:focus-visible,.chip:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.mapbox{position:relative;line-height:0}
+#map{width:100%;display:block;border-radius:2px;background:#0b2030;touch-action:pan-y}
+#tip{position:absolute;max-width:290px;background:#0e1512;color:#e8e2cf;border:1px solid #c8a252;border-radius:3px;padding:9px 11px;font:15px/1.35 var(--text);pointer-events:none;z-index:2}
+#tip b{display:block;font:400 17px/1.2 var(--display);letter-spacing:.04em;color:#f1d892}
+#tip span{display:block;font:12px/1.35 var(--sans);color:#b9b39c;margin:2px 0 5px}
+#tip em{font:600 10px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:#e2633f;font-style:normal;margin-right:6px}
+#chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--rule);border-radius:3px;padding:6px 9px;text-transform:none}
+.chip i{width:11px;height:11px;border-radius:50%;outline:2px solid;outline-offset:-1px}
+.chip[aria-pressed="true"]{background:var(--chip);border-color:var(--red)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.grid>*{min-width:0}
+.match{border-top:2px solid var(--fg);padding-top:9px;display:flex;flex-direction:column;gap:3px}
+.match small{font:600 11px/1.2 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.match p{font-size:16.5px;line-height:1.4}
+.way{border:1px solid var(--rule);border-radius:4px;padding:14px;display:flex;flex-direction:column;gap:8px;background:var(--panel)}
+.way.pick{border-color:var(--red)}
+.tag{align-self:flex-start;font:700 10px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;padding:5px 7px;border-radius:2px;background:var(--red);color:var(--bg)}
+.tag.alt{background:var(--chip);color:var(--dim)}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:16.5px}
+th,td{text-align:left;vertical-align:top;padding:8px 12px 8px 0;border-bottom:1px solid var(--rule)}
+th{font:600 11px/1.2 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+td:first-child{white-space:nowrap;color:var(--dim)}
+td b{font-weight:600}
+.new{font:700 10px/1 var(--sans);letter-spacing:.1em;color:var(--red);margin-left:6px}
+.sw{display:flex;flex-wrap:wrap;gap:10px}
+.sw div{flex:1 1 120px;min-width:0;font:12px/1.3 var(--sans);color:var(--dim)}
+.sw i{display:block;height:40px;border-radius:3px;border:1px solid var(--rule);margin-bottom:5px}
+.spec{display:flex;flex-direction:column;gap:10px}
+.spec div{display:flex;flex-wrap:wrap;gap:4px 16px;align-items:baseline;border-bottom:1px solid var(--rule);padding-bottom:9px}
+.spec small{flex:0 0 190px;font:600 11px/1.3 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.banners{display:flex;flex-wrap:wrap;gap:16px 22px;align-items:center}
+.bn{display:inline-flex;align-items:center;font:400 15px/1 var(--display);letter-spacing:.05em;height:30px;filter:drop-shadow(0 1px 0 rgba(0,0,0,.35))}
+.bn u{text-decoration:none;font:700 11px/30px var(--sans);padding:0 8px;height:30px}
+.bn span{padding:0 14px 0 10px;line-height:30px}
+ol,ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:7px;max-width:70ch}
+pre.mermaid{margin:0}
+.ask{border-left:3px solid var(--red);padding:2px 0 2px 14px;display:flex;flex-direction:column;gap:4px}
+footer{font:13px/1.5 var(--sans);color:var(--dim);border-top:1px solid var(--rule);padding-top:16px}
+footer p{max-width:90ch}
+@media (max-width:640px){body{font-size:17px}.spec small{flex-basis:100%}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Design draft v0 · 25 November 2026 · nothing is built yet</div>
+  <h1>The Reunited States</h1>
+  <p class="lede">The real United States, redrawn as Middle-earth. A Tolkien edition of Andrej Karpathy's usaciv: the same land, the same public data and the same hex map, with new names, new art, and a stated reason for every match.</p>
+</header>
+
+<section>
+  <div class="plate">
+    <div class="bar">
+      <span>Names</span><span class="seg"><button data-mode="legend" aria-pressed="true">Middle-earth</button><button data-mode="real" aria-pressed="false">Real</button></span>
+      <span>Colour</span><span class="seg"><button data-view="realms" aria-pressed="true">Realms</button><button data-view="terrain" aria-pressed="false">Terrain</button></span>
+    </div>
+    <div class="mapbox"><canvas id="map" role="img" aria-label="Hex map of the lower 48 states coloured by the draft Middle-earth realms"></canvas><div id="tip" hidden></div></div>
+    <p id="maperr" class="dim" hidden>The map data did not load. The rest of the page still reads.</p>
+    <div id="chips" aria-label="Realms: press one to isolate it"></div>
+    <p class="dim" style="font-size:15px;max-width:none">Drawn from usaciv's real grid (10,530 hexes, 25 km radius). Hover or tap anything. Gold-rimmed plates are named places; grey plates keep their real names. Diamonds are legend sites. This is a sketch of the layout, not of the final art.</p>
+  </div>
+</section>
+
+<section>
+  <h2>The idea</h2>
+  <p>usaciv draws the country like a 4X strategy map and lets every number trace back to a public source. This edition keeps all of that and adds one layer on top, the <b>legendarium</b>: a single data file that says what each state, city, river, wonder and fort is called in Middle-earth, and why. The engine never sees a made-up number. Switch the names to Real and you are looking at usaciv again.</p>
+  <ul>
+    <li>The real numbers never change. Only names, art and stories do.</li>
+    <li>Lands are matched to lands, never peoples to peoples. No real community is cast as a people of the tales.</li>
+    <li>Places sacred to or lived in by Indigenous nations keep their own names.</li>
+    <li>Every match shows its basis: by place, by likeness, by name, or new-made.</li>
+    <li>Cities without a strong match keep their real names. The tales are told in the Common Speech.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Three ways to lay Middle-earth over America</h2>
+  <div class="grid">
+    <div class="way pick"><span class="tag">Recommended · shown above</span><h3>The applicability map</h3><p>Each land goes to the realm it most resembles, by geography first and character second. The North-kingdom is the North, the South-kingdom is the South, Rohan is the grass sea, Mordor is a walled desert basin.</p><p class="dim">Every big city gets a strong identity and nobody's home is an insult. The cost: story distances bend. Gondor and Mordor are far apart.</p></div>
+    <div class="way"><span class="tag alt">Alternative</span><h3>The mirror map</h3><p>Flip Tolkien's map east to west, so the Sea is the Atlantic, and keep its order: Shire in the Midwest, Rivendell at Boulder, Moria under the Divide, the Great River is the Colorado, Minas Tirith is Phoenix, Mordor is Nevada.</p><p class="dim">The Quest traces beautifully along I-70. The cost: the East and South, where most people live, fall on Tolkien's empty lands, and Washington is no longer the White City.</p></div>
+    <div class="way"><span class="tag alt">Alternative</span><h3>The scale overlay</h3><p>Lay the true-scale outline of Middle-earth on the country and read off what falls where. It has been done as a static picture (Hobbiton lands in Kansas, Mordor on Georgia).</p><p class="dim">Honest about size, but arbitrary about meaning, and it puts Mordor on real communities. Useful only as an optional ghost outline.</p></div>
+  </div>
+  <p class="dim">Because the layout is data, changing it later costs an edit to one file, not a rebuild.</p>
+</section>
+
+<section>
+  <h2>Twelve matches that carry the map</h2>
+  <div class="grid">
+    <div class="match"><small>Washington, D.C.</small><h3>Minas Tirith</h3><p>A white city where a Steward rules in the name of an absent king. The Monument is the white tower.</p></div>
+    <div class="match"><small>Pennsylvania</small><h3>The Shire</h3><p>A real Brandywine runs past the mushroom capital of the world, through counties named York, Lancaster, Chester, Berks and Bucks.</p></div>
+    <div class="match"><small>The Mississippi</small><h3>Anduin</h3><p>Misi-ziibi means Great River. So does Anduin. Pelargir stands above its mouths, at New Orleans.</p></div>
+    <div class="match"><small>Texas</small><h3>Rohan</h3><p>Horse-lords on a sea of grass, allied by oath. El Paso means the crossing: the Fords of Isen. The Alamo is the Hornburg.</p></div>
+    <div class="match"><small>Nevada</small><h3>Mordor</h3><p>A basin ringed by ranges, in the rain shadow of the Mountains of Shadow, with a dark inland sea and a great Eye on the Strip.</p></div>
+    <div class="match"><small>California</small><h3>Lothlórien and Eregion</h3><p>The Golden State is the Golden Wood, with the tallest trees on earth. By the bay, smiths make rings of power out of sand.</p></div>
+    <div class="match"><small>Washington State</small><h3>Erebor and Lake-town</h3><p>A lone mountain over a trading town on the water. The 1980 blast zone next door is the Desolation.</p></div>
+    <div class="match"><small>New York</small><h3>Fornost Erain</h3><p>Norbury of the Kings, chief city of the North-kingdom. Brooklyn is Kings County.</p></div>
+    <div class="match"><small>Colorado</small><h3>Khazad-dûm</h3><p>Silver under the highest passes, and a fortress inside a mountain behind 25-ton doors.</p></div>
+    <div class="match"><small>Appalachia</small><h3>Ered Luin</h3><p>Thorin's exiled folk were smiths, and for a time coal-miners, before they prospered in the Blue Mountains. Here are the Blue Ridge and the Bluegrass.</p></div>
+    <div class="match"><small>Cape Canaveral</small><h3>Edhellond</h3><p>The Elf-haven, from which ships leave the circles of the world.</p></div>
+    <div class="match"><small>Minnesota</small><h3>Forochel</h3><p>The Snowmen of the far North slid over the ice with bones on their feet. This is the State of Hockey.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>What usaciv shows, and what this shows</h2>
+  <div class="scroll"><table>
+    <tr><th>usaciv</th><th>This edition</th><th>From the same data</th></tr>
+    <tr><td>State colours</td><td><b>Fifteen realms</b> with heraldry; each state is a land or fief inside one</td><td>states, summed to realms</td></tr>
+    <tr><td>City banners</td><td>Banners cut in the style of each people; about 50 names from the tales to start (growing toward 100), the rest in the Common Speech</td><td>524 metro areas</td></tr>
+    <tr><td>Five yields</td><td><b>Harvest, Craft, Gold, Lore, Song</b></td><td>jobs by industry, GDP</td></tr>
+    <tr><td>Roads, rail, ports, airports</td><td>Great Roads, Dwarf-roads, Havens, and Eyries of the Eagles</td><td>Interstates, railroads, 136 ports, 368 airports</td></tr>
+    <tr><td>Military</td><td>Hosts, Fleets, Eagles, Sea-guard and Musters; ranges become forbidden ground</td><td>660 installations, 30 ranges</td></tr>
+    <tr><td>52 wonders</td><td>The same 52 by the same rules, renamed where a match is strong, plus about 20 <b>legend sites</b><span class="new">NEW</span></td><td>parks, universities, landmarks</td></tr>
+    <tr><td>Trade routes</td><td>Wains, barges and ships, plus the <b>Great Journeys</b> traced on real roads<span class="new">NEW</span></td><td>40 freight flows</td></tr>
+    <tr><td>19 lenses</td><td><b>Seeing-stones</b>: the same 19, plus a Realms lens and a Parchment view<span class="new">NEW</span></td><td>3,109 counties</td></tr>
+    <tr><td>City View</td><td>Folk by craft (smiths, healers, loremasters, innkeepers); districts become Forges, Havens, Halls of Song</td><td>occupations, industries</td></tr>
+    <tr><td>Ten advisors</td><td><b>The Council</b>: Loremaster, Master Smith, Marshal, Harbour-master and six more</td><td>all of the above</td></tr>
+    <tr><td>Almanac</td><td><b>The Red Book</b>, with a page of Correspondences giving the reason for every match; sources unchanged</td><td>31 public sources</td></tr>
+    <tr><td>(none)</td><td><b>Names switch</b>: Middle-earth or Real, everywhere, in one click<span class="new">NEW</span></td><td></td></tr>
+    <tr><td>(none)</td><td><b>Ages</b>: Second (The Rings of Power), Third (The Hobbit, the War of the Ring), Fourth (the King's peace)<span class="new">NEW</span></td><td>names and art only; numbers stay 2025</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2>How it should look</h2>
+  <p>A painted strategy map by default, as in usaciv, re-drawn for this world. All art stays original and drawn in code. Nothing is taken from the films, the series or the published maps.</p>
+  <h3>Chrome and inks</h3>
+  <div class="sw">
+    <div><i style="background:#0e1512"></i>Night · panels</div>
+    <div><i style="background:#e8e2cf"></i>Bone · text</div>
+    <div><i style="background:#c8a252"></i>Old gold · frames</div>
+    <div><i style="background:#b3331c"></i>Rubric red · names</div>
+    <div><i style="background:#c9d6dc"></i>Mithril · figures</div>
+    <div><i style="background:#0b2030"></i>Deep sea</div>
+    <div><i style="background:#f2e8cf"></i>Paper · Parchment view</div>
+    <div><i style="background:#3b2a1e"></i>Iron-gall ink</div>
+  </div>
+  <h3>Lettering</h3>
+  <div class="spec">
+    <div><small>Wordmark, Elvish range names</small><span style="font:400 30px/1.1 var(--uncial)">Hithaeglir</span></div>
+    <div><small>Map names and headings</small><span style="font:400 24px/1.1 var(--display);letter-spacing:.14em;color:var(--red)">Rhovanion · The Shire</span></div>
+    <div><small>Reading text</small><span>The harvest of Lebennin came to 61,923 wains. <i>(Real figure: freight, FAF5.)</i></span></div>
+    <div><small>Figures</small><span style="font:600 16px/1.2 var(--sans);font-variant-numeric:tabular-nums">20,112,448 · $2.44T · +2.1%</span></div>
+    <div><small>Ornament: real runes, our own words</small><span style="font:400 20px/1.2 'Noto Sans Runic',var(--sans);letter-spacing:.12em">ᚻᛖᚱᛖ ᛒᛖ ᚱᛖᚪᛚ ᚾᚢᛗᛒᛖᚱᛋ</span></div>
+  </div>
+  <h3>Banners by people</h3>
+  <div class="banners">
+    <span class="bn" style="background:#15181d;color:#f2f0e8;border:1px solid #cfd3da"><u style="background:#f2f0e8;color:#15181d">6.5M</u><span>Minas Tirith</span></span>
+    <span class="bn" style="background:#2f7a4a;color:#fbf7e6;clip-path:polygon(0 0,100% 0,calc(100% - 9px) 50%,100% 100%,0 100%)"><u style="background:#f4f1e4;color:#1d4a2d">2.6M</u><span style="padding-right:22px">Edoras</span></span>
+    <span class="bn" style="background:#f0d264;color:#2c3a14;border-radius:15px;border:2px solid #6f9a3a"><u style="background:#6f9a3a;color:#fff;border-radius:13px 0 0 13px">563K</u><span>Hobbiton</span></span>
+    <span class="bn" style="background:#2f5d8c;color:#eef4fa;border-radius:15px 15px 2px 2px"><u style="background:#dfe8f2;color:#1d3f63;border-radius:14px 0 0 2px">5.0M</u><span>Mithlond</span></span>
+    <span class="bn" style="background:#3a3d52;color:#e9d3b0;clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 50%,calc(100% - 8px) 100%,8px 100%,0 50%)"><u style="background:#c98a4b;color:#201408;padding-left:14px">3.1M</u><span style="padding-right:20px">Khazad-dûm</span></span>
+    <span class="bn" style="background:#1a1414;color:#f0b8a8;clip-path:polygon(0 0,100% 0,96% 30%,100% 55%,95% 80%,100% 100%,0 100%)"><u style="background:#c8372d;color:#170d0b">2.4M</u><span style="padding-right:20px">Barad-dûr</span></span>
+  </div>
+  <h3>Settlements and land</h3>
+  <ul>
+    <li><b>Ten settlement styles</b>, each in five sizes from village to great city: hobbit-holes and mills; white stone tiers; thatched halls behind a dike; havens with slender towers; lamps among great trees; gates in a cliff; a town on piles; a walled market town; a wizard's ring; a dark tower (a ruin with new farms in the Fourth Age).</li>
+    <li><b>Terrain moods</b> on top of the real land cover: hedged patchwork, grass sea with horse herds, dark canopy, golden canopy, ash and slag, salt marsh, snowfields of the North.</li>
+    <li><b>Parchment view</b>: the same hexes in black ink and rubric red on paper, with profile mountains and tree clumps, as a second way to look at the map.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>How it is built</h2>
+  <p>A fork of usaciv (MIT). It stays a static site with no framework and no build step: plain modules, Canvas 2D, and a small Python pipeline. One new builder and one new browser module carry the whole translation.</p>
+  <div class="scroll"><pre class="mermaid">
+flowchart LR
+  A[31 public sources] --> B[usaciv builders]
+  B --> C[web/data: world, cities, states, wonders ...]
+  T[pipeline/lore: hand-written tables<br/>realms, lands, places, wonders, ages] --> L[legendarium builder + checks]
+  C --> L
+  L --> J[legendarium.json]
+  C --> R[Renderer and panels]
+  J --> M[lore.js: names, basis, culture, mood, age]
+  M --> R
+  R --> U[Map, City View, Council, Red Book]
+  </pre></div>
+  <ul>
+    <li>Real identifiers (state FIPS, metro CBSA, wonder and base ids) stay the keys everywhere. Real names are never overwritten, because the pipeline's logic depends on them.</li>
+    <li>The builder fails the build on an unknown key, a state in two realms, or a match with no stated basis.</li>
+    <li>Search answers to both tongues: typing Chicago finds Annúminas.</li>
+    <li>All Tolkien-derived names live in that one file, so they can be swapped without touching the engine.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Build order</h2>
+  <ol>
+    <li><b>Foundation.</b> Import usaciv with its licence and credits, a local server, the existing tests.</li>
+    <li><b>Legendarium.</b> The data layer, checks, the names switch, search in both tongues. The map is already recognisably this edition after this step.</li>
+    <li><b>Look.</b> Fonts, palette, icons, top bar, banners by people, the Realms lens.</li>
+    <li><b>Land.</b> Terrain moods, mountains, rivers and coast re-drawn.</li>
+    <li><b>Places.</b> Settlement styles, strongholds, wonders, legend sites, folk figures.</li>
+    <li><b>Words.</b> The Council, City View, the Red Book and the Correspondences page.</li>
+    <li><b>Time and roads.</b> Ages, Great Journeys, the Parchment view.</li>
+    <li><b>Launch.</b> Share images, trailer with an original score, deploy to your domain.</li>
+  </ol>
+  <p class="dim">Each step ends with a working site.</p>
+</section>
+
+<section>
+  <h2>Your call</h2>
+  <div class="ask"><h3>1. The layout</h3><p>Is the applicability map the right one, and which matches would you veto or swap? Hover the map and tell me what feels wrong.</p></div>
+  <div class="ask"><h3>2. The default Age</h3><p>Open on the War of the Ring (the Eye lit, the famous map), or on the Fourth Age, where the top bar can read The Reunited Kingdom?</p></div>
+  <div class="ask"><h3>3. Going public</h3><p>This is an unofficial fan work using Tolkien's place-names. The usual practice keeps it free of ads and sales, keeps the author's name, the book titles and "Middle-earth" out of the domain and site title, and uses no film or series imagery. Are you comfortable with that, and with The Reunited States as the working name?</p></div>
+</section>
+
+<footer>
+  <p>Built on usaciv by Andrej Karpathy (MIT licence). Map data: U.S. Census Bureau, BEA, NOAA, USGS, EIA, Natural Earth and the other public sources listed in usaciv's Almanac. This is an unofficial fan project. It is not affiliated with or endorsed by the Tolkien Estate, Middle-earth Enterprises, Warner Bros., New Line Cinema or Amazon. All artwork is original and drawn in code.</p>
+</footer>
+</div>
+<script>
+// Concept map for the design review. Draws usaciv's real hex world, coloured by the draft realm layout.
+// Throwaway illustration code: the product keeps usaciv's renderer.
+(() => {
+  const D = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const COVER = ["#8c9070", "#4c6b3c", "#35553c", "#44643f", "#bfa878", "#a3ab62", "#93ac58", "#b9ad58", "#5a8a72", "#8f887c", "#b9a98f", "#e6ecef"];
+  const WATER = ["", "#0f2a3d", "#1c4c63", "#2a6884"];
+  const cv = document.getElementById("map"), ctx = cv.getContext("2d"), tip = document.getElementById("tip");
+  let W, L, cx, cy, realmOf, stateOf, cells = 0, s = 1, mode = "legend", view = "realms", focus = null, placed = [], sites = [];
+
+  const hex = c => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16));
+  const mix = (a, b, t) => a.map((v, i) => Math.round(v + (b[i] - v) * t));
+  const css = a => `rgb(${a[0]},${a[1]},${a[2]})`;
+  const lum = a => (0.299 * a[0] + 0.587 * a[1] + 0.114 * a[2]) / 255;
+  const short = n => n >= 1e6 ? (n / 1e6).toFixed(n >= 1e7 ? 0 : 1) + "M" : Math.round(n / 1e3) + "K";
+
+  function albers(lat, lon) {
+    const p = W.proj, r = Math.PI / 180, n = (Math.sin(p.p1 * r) + Math.sin(p.p2 * r)) / 2;
+    const C = Math.cos(p.p1 * r) ** 2 + 2 * n * Math.sin(p.p1 * r), rho = q => p.R * Math.sqrt(C - 2 * n * Math.sin(q * r)) / n;
+    const th = n * (lon - p.l0) * r, ro = rho(lat);
+    return [ro * Math.sin(th) + p.ox, p.oy - (rho(p.p0) - ro * Math.cos(th))];
+  }
+
+  function prep() {
+    cells = W.cols * W.rows; cx = new Float32Array(cells); cy = new Float32Array(cells);
+    const q = Math.sqrt(3) * W.r;
+    for (let i = 0; i < cells; i++) { const row = (i / W.cols) | 0, col = i % W.cols; cx[i] = q * (col + 0.5 * (row & 1)); cy[i] = 1.5 * W.r * row; }
+    const byAbbr = {}; L.realms.forEach(r => { r.rgb = hex(r.colors[0]); r.n = 0; r.sx = 0; r.sy = 0; r.states.forEach(a => byAbbr[a] = r); });
+    realmOf = new Array(cells).fill(null); stateOf = new Int16Array(cells).fill(-1);
+    for (let i = 0; i < cells; i++) {
+      const o = W.owner[i]; if (o === "~" || o === "^") continue;
+      const si = D.indexOf(o), r = byAbbr[W.states[si].abbr]; stateOf[i] = si; realmOf[i] = r;
+      if (r) { r.n++; r.sx += cx[i]; r.sy += cy[i]; }
+    }
+    W.cities.forEach(c => { const p = L.places[c.id]; c.legend = p ? p[0] : null; c.realm = byAbbr[c.st[0]]; });
+    sites = L.sites.map(x => ({ ...x, xy: albers(x.lat, x.lon) }));
+    const chips = document.getElementById("chips");
+    chips.innerHTML = L.realms.map(r => `<button class="chip" id="chip-${r.id}" data-id="${r.id}" aria-pressed="false"><i style="background:${r.colors[0]};outline-color:${r.colors[1]}"></i>${r.name}</button>`).join("");
+    chips.onclick = e => { const b = e.target.closest("button"); if (!b) return; focus = focus === b.dataset.id ? null : b.dataset.id; chips.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x.dataset.id === focus)); draw(); };
+  }
+
+  function nb(i, k) {
+    const row = (i / W.cols) | 0, col = i % W.cols, odd = row & 1;
+    const d = [[1, 0], [odd, 1], [odd - 1, 1]][k], c = col + d[0], r = row + d[1];
+    return c < 0 || c >= W.cols || r >= W.rows ? -1 : r * W.cols + c;
+  }
+
+  function draw() {
+    const cssW = cv.clientWidth, dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = Math.round(cssW * dpr); cv.height = Math.round(cssW * W.height / W.width * dpr);
+    s = cv.width / W.width; const R = W.r * s, night = [10, 16, 14];
+    ctx.fillStyle = "#0b2030"; ctx.fillRect(0, 0, cv.width, cv.height);
+    const corner = (i, j) => [cx[i] * s + R * 1.02 * Math.cos(Math.PI / 6 + j * Math.PI / 3), cy[i] * s + R * 1.02 * Math.sin(Math.PI / 6 + j * Math.PI / 3)];
+    for (let i = 0; i < cells; i++) {
+      const o = W.owner[i]; let col;
+      if (o === "~") { const w = +W.water[i]; if (w < 2) continue; col = hex(WATER[w]); }
+      else {
+        const rel = +W.relief[i]; let base = hex(COVER[D.indexOf(W.cover[i])]);
+        if (o === "^") base = mix([70, 80, 72], base, 0.25);
+        else { const r = realmOf[i]; base = mix(base, r.rgb, view === "realms" ? 0.72 : 0.1); if (focus && r.id !== focus) base = mix(base, night, 0.66); }
+        col = mix(base, rel === 3 ? [235, 238, 240] : [0, 0, 0], [0, 0.07, 0.2, 0.42][rel]);
+      }
+      ctx.beginPath(); for (let j = 0; j < 6; j++) { const p = corner(i, j); j ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); }
+      ctx.fillStyle = css(col); ctx.fill();
+      if (o !== "~" && +W.relief[i] >= 2 && R > 3.6) {
+        const x = cx[i] * s, y = cy[i] * s; ctx.beginPath(); ctx.moveTo(x - R * 0.55, y + R * 0.38); ctx.lineTo(x, y - R * 0.5); ctx.lineTo(x + R * 0.55, y + R * 0.38);
+        ctx.strokeStyle = "rgba(12,10,6,.42)"; ctx.lineWidth = Math.max(0.6, R * 0.13); ctx.stroke();
+      }
+    }
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    W.rivers.forEach(r => { ctx.beginPath(); for (let k = 0; k < r.p.length; k += 2) k ? ctx.lineTo(r.p[k] * s, r.p[k + 1] * s) : ctx.moveTo(r.p[k] * s, r.p[k + 1] * s); ctx.strokeStyle = "rgba(128,190,214,.85)"; ctx.lineWidth = Math.max(0.7, (6 - r.k) * 0.32 * s * 4.6); ctx.stroke(); });
+    for (const pass of [0, 1]) {
+      ctx.beginPath();
+      for (let i = 0; i < cells; i++) for (let k = 0; k < 3; k++) {
+        const j = nb(i, k); if (j < 0) continue; const a = realmOf[i], b = realmOf[j];
+        const realmEdge = a !== b && (a || b) && W.owner[i] !== "~" && W.owner[j] !== "~";
+        const stateEdge = a && a === b && stateOf[i] !== stateOf[j];
+        if (pass ? !realmEdge : !stateEdge) continue;
+        const p = corner(i, [5, 0, 1][k]), q = corner(i, [0, 1, 2][k]); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]);
+      }
+      ctx.strokeStyle = pass ? "rgba(16,10,6,.82)" : "rgba(16,10,6,.24)"; ctx.lineWidth = (pass ? 1.9 : 0.8) * s * 4.4; ctx.stroke();
+    }
+    const k = cv.width / 1100, serif = getComputedStyle(document.documentElement).getPropertyValue("--display");
+    const label = (t, x, y, px, ang, fill, halo, sp) => {
+      ctx.save(); ctx.translate(x, y); ctx.rotate(ang * Math.PI / 180); ctx.font = `600 ${px}px ${serif}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      try { ctx.letterSpacing = sp + "px"; } catch (e) {}
+      ctx.lineWidth = px * 0.26; ctx.strokeStyle = halo; ctx.strokeText(t, 0, 0); ctx.fillStyle = fill; ctx.fillText(t, 0, 0); ctx.restore();
+    };
+    if (mode === "legend") {
+      L.labels.forEach(b => { const [x, y] = albers(b.lat, b.lon), sea = b.kind === "sea" || b.kind === "lake" || b.kind === "foreign";
+        label(b.text, x * s, y * s, 15 * b.size * k, b.angle, sea ? "rgba(214,228,232,.8)" : "rgba(28,20,12,.86)", sea ? "rgba(8,22,32,.5)" : "rgba(238,228,200,.5)", 4 * k); });
+      L.realms.forEach(r => { if (focus && r.id !== focus) return; const at = r.at ? albers(r.at[0], r.at[1]) : [r.sx / r.n, r.sy / r.n];
+        const px = Math.max(9.5, Math.min(19, Math.sqrt(r.n) * 1.02)) * k, words = r.label || [r.name.toUpperCase()];
+        words.forEach((w, n) => label(w, at[0] * s, at[1] * s + (n - (words.length - 1) / 2) * px * 1.12, px, 0, "rgba(190,52,28,.95)", "rgba(248,240,218,.82)", 5 * k)); });
+    } else W.states.forEach(st => { if (st.lx != null) label(st.abbr, st.lx * s, st.ly * s, 11 * k, 0, "rgba(22,16,10,.8)", "rgba(240,232,208,.6)", 1); });
+    sites.forEach(x => { if (mode !== "legend") return; const X = x.xy[0] * s, Y = x.xy[1] * s, d = 3.4 * k; ctx.beginPath(); ctx.moveTo(X, Y - d); ctx.lineTo(X + d, Y); ctx.lineTo(X, Y + d); ctx.lineTo(X - d, Y); ctx.closePath(); ctx.fillStyle = "#f1d07a"; ctx.fill(); ctx.strokeStyle = "#3a2a0c"; ctx.lineWidth = k; ctx.stroke(); });
+    placed = []; const fs = 10.5 * k; ctx.textBaseline = "middle"; ctx.textAlign = "left"; try { ctx.letterSpacing = "0px"; } catch (e) {}
+    const list = W.cities.filter(c => c.legend || c.pop > 1.9e6).sort((a, b) => (!!b.legend && mode === "legend") - (!!a.legend && mode === "legend") || b.pop - a.pop);
+    list.forEach(c => {
+      if (focus && c.realm.id !== focus) return;
+      const named = mode === "legend" && c.legend, text = named ? c.legend : c.n, pop = short(c.pop), X = c.x * s, Y = c.y * s;
+      ctx.font = `600 ${fs}px ${serif}`; const tw = ctx.measureText(text).width; ctx.font = `700 ${fs * 0.82}px system-ui,sans-serif`; const pw = ctx.measureText(pop).width + 7 * k;
+      const w = pw + tw + 12 * k, h = 15 * k; let box = null;
+      for (const [dx, dy] of [[6 * k, -h / 2], [-w - 6 * k, -h / 2], [-w / 2, -h - 6 * k], [-w / 2, 6 * k]]) {
+        const b = [X + dx, Y + dy, w, h]; if (b[0] < 2 || b[0] + w > cv.width - 2 || b[1] < 2 || b[1] + h > cv.height - 2) continue;
+        if (!placed.some(p => b[0] < p.b[0] + p.b[2] + 3 && b[0] + w + 3 > p.b[0] && b[1] < p.b[1] + p.b[3] + 2 && b[1] + h + 2 > p.b[1])) { box = b; break; }
+      }
+      ctx.beginPath(); ctx.arc(X, Y, 2.3 * k, 0, 7); ctx.fillStyle = "#f3e7c2"; ctx.fill(); ctx.strokeStyle = "#1a120a"; ctx.lineWidth = k; ctx.stroke();
+      if (!box) { placed.push({ b: [X - 4, Y - 4, 8, 8], c, dot: 1 }); return; }
+      placed.push({ b: box, c }); const [bx, by] = box, cap = c.realm.rgb;
+      ctx.fillStyle = "rgba(12,18,16,.9)"; ctx.strokeStyle = named ? "rgba(214,176,92,.95)" : "rgba(160,150,120,.6)"; ctx.lineWidth = k; ctx.beginPath(); ctx.roundRect(bx, by, w, h, 3 * k); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = css(cap); ctx.beginPath(); ctx.roundRect(bx + k, by + k, pw, h - 2 * k, 2 * k); ctx.fill();
+      ctx.fillStyle = lum(cap) > 0.5 ? "#14100a" : "#f6efd8"; ctx.fillText(pop, bx + 3.5 * k, by + h / 2 + 0.5);
+      ctx.font = `${named ? 600 : 500} ${fs}px ${serif}`; ctx.fillStyle = named ? "#f3dfa2" : "#cfc7ae"; ctx.fillText(text, bx + pw + 5 * k, by + h / 2 + 0.5);
+    });
+  }
+
+  function cellAt(x, y) {
+    const row = Math.round(y / (1.5 * W.r)), col = Math.round(x / (Math.sqrt(3) * W.r) - 0.5 * (row & 1)); let best = -1, bd = 1e9;
+    for (let r = row - 1; r <= row + 1; r++) for (let c = col - 1; c <= col + 1; c++) { if (r < 0 || c < 0 || r >= W.rows || c >= W.cols) continue; const i = r * W.cols + c, d = (cx[i] - x) ** 2 + (cy[i] - y) ** 2; if (d < bd) { bd = d; best = i; } }
+    return best;
+  }
+  const BASIS = { place: "by place", likeness: "by likeness", name: "by name", new: "new-made", none: "kept as it is" };
+  function describe(px, py) {
+    const hit = placed.find(p => px >= p.b[0] - 3 && px <= p.b[0] + p.b[2] + 3 && py >= p.b[1] - 3 && py <= p.b[1] + p.b[3] + 3);
+    if (hit) { const c = hit.c, p = L.places[c.id]; return p ? `<b>${p[0]}</b><span>${c.n} \u00b7 ${short(c.pop)} people \u00b7 $${c.gdp}B</span><em>${BASIS[p[1]]}</em>${p[3]}` : `<b>${c.n}</b><span>${short(c.pop)} people \u00b7 $${c.gdp}B</span>Keeps its real name: the tales are told in the Common Speech.`; }
+    const x = px / s, y = py / s, st = mode === "legend" && sites.find(q => (q.xy[0] - x) ** 2 + (q.xy[1] - y) ** 2 < 900);
+    if (st) return `<b>${st.name}</b><span>${st.real}</span><em>${BASIS[st.basis]}</em>`;
+    const wo = W.wonders.find(q => (q.x - x) ** 2 + (q.y - y) ** 2 < 500 && L.wonders[q.id]);
+    if (wo) { const v = L.wonders[wo.id]; return `<b>${v[0]}</b><span>${wo.n}</span><em>${BASIS[v[1]]}</em>${v[2]}`; }
+    const i = cellAt(x, y); if (i < 0 || stateOf[i] < 0) return null; const sta = W.states[stateOf[i]], land = L.lands[sta.abbr], r = realmOf[i];
+    return `<b>${land[0]}</b><span>${sta.name} \u00b7 ${short(sta.pop)} people \u00b7 $${Math.round(sta.gdp)}B \u00b7 realm of ${r.name}</span><em>${BASIS[land[1]]}</em>${land[2]}`;
+  }
+  function bind() {
+    const move = e => { const b = cv.getBoundingClientRect(), k = cv.width / b.width, h = describe((e.clientX - b.left) * k, (e.clientY - b.top) * k);
+      if (!h) { tip.hidden = true; return; } tip.innerHTML = h; tip.hidden = false;
+      const w = tip.offsetWidth, x = Math.min(b.width - w - 6, Math.max(6, e.clientX - b.left + 14)); tip.style.left = x + "px"; tip.style.top = Math.min(b.height - tip.offsetHeight - 6, e.clientY - b.top + 16) + "px"; };
+    cv.addEventListener("pointermove", move); cv.addEventListener("pointerdown", move); cv.addEventListener("pointerleave", () => tip.hidden = true);
+    document.querySelectorAll("[data-mode]").forEach(b => b.onclick = () => { mode = b.dataset.mode; document.querySelectorAll("[data-mode]").forEach(x => x.setAttribute("aria-pressed", x === b)); draw(); });
+    document.querySelectorAll("[data-view]").forEach(b => b.onclick = () => { view = b.dataset.view; document.querySelectorAll("[data-view]").forEach(x => x.setAttribute("aria-pressed", x === b)); draw(); });
+    let t; window.addEventListener("resize", () => { clearTimeout(t); t = setTimeout(draw, 120); });
+  }
+  Promise.all([fetch("hexes.json").then(r => r.json()), fetch("legendarium-draft.json").then(r => r.json())])
+    .then(([w, l]) => { W = w; L = l; prep(); bind(); (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(draw); draw(); })
+    .catch(e => { document.getElementById("maperr").hidden = false; console.error(e); });
+})();
+</script>

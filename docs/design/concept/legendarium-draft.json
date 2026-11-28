@@ -1,0 +1,1338 @@
+{
+ "version": 0,
+ "status": "DRAFT v0 for review. Every assignment is content, not code: it can change without touching the engine.",
+ "basis": {
+  "place": "chosen by geography (it sits where the tale needs it, or the real feature matches)",
+  "likeness": "chosen by form or character (it looks or behaves like the thing in the tale)",
+  "name": "the real name already echoes the tale",
+  "new": "no counterpart in the tales; our own invention, always marked"
+ },
+ "realms": [
+  {
+   "id": "lindon",
+   "name": "Lindon",
+   "gloss": "The Elven shore and the Grey Havens",
+   "people": "Elves",
+   "colors": [
+    "#5b8fbf",
+    "#eef4fa"
+   ],
+   "device": "stars",
+   "states": [
+    "ME",
+    "NH",
+    "VT",
+    "MA",
+    "RI",
+    "CT"
+   ],
+   "label": [
+    "LINDON"
+   ]
+  },
+  {
+   "id": "arnor",
+   "name": "Arnor",
+   "gloss": "The North-kingdom of the Dúnedain",
+   "people": "Men of the West",
+   "colors": [
+    "#6d70b3",
+    "#e3e5f6"
+   ],
+   "device": "star",
+   "states": [
+    "NY",
+    "OH",
+    "IN",
+    "IL",
+    "WI"
+   ],
+   "at": [
+    40.2,
+    -87.6
+   ],
+   "label": [
+    "ARNOR"
+   ]
+  },
+  {
+   "id": "shire",
+   "name": "The Shire",
+   "gloss": "A free land of small farms and long meals",
+   "people": "Hobbits",
+   "colors": [
+    "#6f9a3a",
+    "#f0d264"
+   ],
+   "device": "leaf",
+   "states": [
+    "PA",
+    "NJ",
+    "DE"
+   ],
+   "label": [
+    "THE SHIRE"
+   ]
+  },
+  {
+   "id": "eredluin",
+   "name": "Ered Luin",
+   "gloss": "The Blue Mountains: coal, iron and Dwarf-halls",
+   "people": "Dwarves",
+   "colors": [
+    "#4f7391",
+    "#c98a4b"
+   ],
+   "device": "anvil",
+   "states": [
+    "WV",
+    "KY"
+   ],
+   "label": [
+    "ERED LUIN"
+   ]
+  },
+  {
+   "id": "gondor",
+   "name": "Gondor",
+   "gloss": "The South-kingdom and its fiefs",
+   "people": "Men of the West",
+   "colors": [
+    "#b9bdc9",
+    "#15181d"
+   ],
+   "device": "tree",
+   "states": [
+    "MD",
+    "DC",
+    "VA",
+    "NC",
+    "SC",
+    "GA",
+    "FL",
+    "AL",
+    "MS",
+    "LA",
+    "TN",
+    "AR"
+   ],
+   "at": [
+    32.9,
+    -84.2
+   ],
+   "label": [
+    "GONDOR"
+   ]
+  },
+  {
+   "id": "rohan",
+   "name": "Rohan",
+   "gloss": "The Riddermark: a sea of grass",
+   "people": "Horse-lords",
+   "colors": [
+    "#2f7a4a",
+    "#f4f1e4"
+   ],
+   "device": "horse",
+   "states": [
+    "TX",
+    "OK"
+   ],
+   "label": [
+    "ROHAN"
+   ]
+  },
+  {
+   "id": "ironhills",
+   "name": "The Iron Hills",
+   "gloss": "Forges of Dáin's folk",
+   "people": "Dwarves",
+   "colors": [
+    "#8a4a35",
+    "#e3c08a"
+   ],
+   "device": "hammer",
+   "states": [
+    "MI"
+   ],
+   "label": [
+    "IRON",
+    "HILLS"
+   ]
+  },
+  {
+   "id": "forochel",
+   "name": "Forochel",
+   "gloss": "The cold North of the Snowmen",
+   "people": "Lossoth",
+   "colors": [
+    "#8fb3c9",
+    "#f4f8fa"
+   ],
+   "device": "snow",
+   "states": [
+    "MN"
+   ],
+   "label": [
+    "FOROCHEL"
+   ]
+  },
+  {
+   "id": "rhovanion",
+   "name": "Rhovanion",
+   "gloss": "Wilderland: the wide plains and the vales of Anduin",
+   "people": "Northmen and Beornings",
+   "colors": [
+    "#b08a3e",
+    "#f0e2b6"
+   ],
+   "device": "bear",
+   "states": [
+    "IA",
+    "MO",
+    "KS",
+    "NE",
+    "SD",
+    "ND",
+    "MT"
+   ],
+   "label": [
+    "RHOVANION"
+   ]
+  },
+  {
+   "id": "hithaeglir",
+   "name": "The Misty Mountains",
+   "gloss": "Khazad-dûm, the high passes and Rivendell",
+   "people": "Dwarves and Elves",
+   "colors": [
+    "#6c6a8c",
+    "#dcdcec"
+   ],
+   "device": "peaks",
+   "states": [
+    "CO",
+    "WY",
+    "ID",
+    "UT"
+   ],
+   "at": [
+    44.2,
+    -108.9
+   ],
+   "label": [
+    "MISTY",
+    "MOUNTAINS"
+   ]
+  },
+  {
+   "id": "isengard",
+   "name": "Nan Curunír",
+   "gloss": "The Wizard's Vale: Isengard",
+   "people": "Wizards",
+   "colors": [
+    "#55585c",
+    "#f5f5f0"
+   ],
+   "device": "hand",
+   "states": [
+    "NM"
+   ],
+   "label": [
+    "NAN",
+    "CURUNÍR"
+   ]
+  },
+  {
+   "id": "harondor",
+   "name": "Harondor",
+   "gloss": "South Gondor: a desert and debatable land",
+   "people": "Men",
+   "colors": [
+    "#c4743e",
+    "#f3dcae"
+   ],
+   "device": "sun",
+   "states": [
+    "AZ"
+   ],
+   "label": [
+    "HARONDOR"
+   ]
+  },
+  {
+   "id": "mordor",
+   "name": "Mordor",
+   "gloss": "The Black Land, walled by mountains",
+   "people": "Freed folk of Nurn (after the War)",
+   "colors": [
+    "#2a1210",
+    "#c8372d"
+   ],
+   "device": "eye",
+   "states": [
+    "NV"
+   ],
+   "label": [
+    "MORDOR"
+   ]
+  },
+  {
+   "id": "lorien",
+   "name": "Lothlórien",
+   "gloss": "The Golden Wood, with Eregion of the Ring-smiths by the bay",
+   "people": "Elves",
+   "colors": [
+    "#c9a227",
+    "#f6eec2"
+   ],
+   "device": "mallorn",
+   "states": [
+    "CA"
+   ],
+   "label": [
+    "LOTHLÓRIEN"
+   ],
+   "at": [
+    36.6,
+    -119.6
+   ]
+  },
+  {
+   "id": "erebor",
+   "name": "Erebor and Dale",
+   "gloss": "The Lonely Mountain, Lake-town, Dale and the Woodland Realm",
+   "people": "Dwarves, Men and Wood-elves",
+   "colors": [
+    "#2f8275",
+    "#e2b54a"
+   ],
+   "device": "mountain",
+   "states": [
+    "WA",
+    "OR"
+   ],
+   "label": [
+    "EREBOR",
+    "& DALE"
+   ],
+   "at": [
+    45.6,
+    -120.4
+   ]
+  }
+ ],
+ "lands": {
+  "ME": [
+   "Forlindon",
+   "place",
+   "The northern shore of the Elven coast."
+  ],
+  "NH": [
+   "Emyn Beraid",
+   "place",
+   "The Tower Hills behind the Havens."
+  ],
+  "VT": [
+   "The Far Downs",
+   "place",
+   "Green hills between the Havens and the Shire."
+  ],
+  "MA": [
+   "Mithlond",
+   "likeness",
+   "The Grey Havens: an old harbour city of lore-masters."
+  ],
+  "RI": [
+   "Harlindon",
+   "place",
+   "The southern shore of Lindon."
+  ],
+  "CT": [
+   "Harlindon",
+   "place",
+   "The southern shore; New Haven is the South Haven."
+  ],
+  "NY": [
+   "Arthedain",
+   "place",
+   "Chief of the northern realms. The Hudson is the Lune, its border with Lindon."
+  ],
+  "OH": [
+   "Cardolan",
+   "place",
+   "The southern march of the North-kingdom. Its river-port Tharbad stood on the border of North and South."
+  ],
+  "IN": [
+   "Bree-land",
+   "likeness",
+   "The Crossroads of America is Bree, where the great roads meet."
+  ],
+  "IL": [
+   "Evendim",
+   "place",
+   "Annúminas stood on the shore of the great lake."
+  ],
+  "WI": [
+   "Emyn Uial",
+   "place",
+   "The Hills of Evendim beside the lake."
+  ],
+  "PA": [
+   "The Shire",
+   "name",
+   "A real Brandywine flows here, past the mushroom capital of the world, through counties named York, Lancaster, Chester, Berks and Bucks."
+  ],
+  "NJ": [
+   "Buckland",
+   "place",
+   "Across the river from the Shire, with the Old Forest (the Pine Barrens) at its back."
+  ],
+  "DE": [
+   "The Marish",
+   "place",
+   "Low wet fields along the Brandywine."
+  ],
+  "WV": [
+   "Ered Luin",
+   "likeness",
+   "Thorin's exiled folk were smiths, and for a time coal-miners, before they prospered in the Blue Mountains."
+  ],
+  "KY": [
+   "Ered Luin",
+   "name",
+   "The Bluegrass under the Blue Mountains: caves, coal and a guarded hoard of gold."
+  ],
+  "MD": [
+   "Anórien",
+   "place",
+   "The royal lands around the White City."
+  ],
+  "DC": [
+   "Minas Tirith",
+   "likeness",
+   "A white city ruled by a Steward in the name of an absent king."
+  ],
+  "VA": [
+   "Lossarnach",
+   "place",
+   "The flowering vales just south-west of the City."
+  ],
+  "NC": [
+   "Ringló Vale",
+   "place",
+   "Rivers running from the White Mountains to the sea."
+  ],
+  "SC": [
+   "Dor-en-Ernil",
+   "place",
+   "The Land of the Prince, between the vales and Belfalas."
+  ],
+  "GA": [
+   "Lamedon",
+   "place",
+   "Uplands at the southern feet of the White Mountains."
+  ],
+  "FL": [
+   "Belfalas",
+   "likeness",
+   "A great peninsula in the southern bay; Dol Amroth and the Elf-haven stand on it."
+  ],
+  "AL": [
+   "Anfalas",
+   "place",
+   "The Langstrand and the green hills of Pinnath Gelin."
+  ],
+  "MS": [
+   "Lebennin",
+   "place",
+   "Rich land on the east bank of the Great River."
+  ],
+  "LA": [
+   "Lebennin",
+   "place",
+   "Land of five rivers; Pelargir above the Mouths of Anduin."
+  ],
+  "TN": [
+   "Morthond",
+   "place",
+   "Blackroot Vale. The Paths of the Dead come out here."
+  ],
+  "AR": [
+   "Ithilien",
+   "place",
+   "The garden land across the Great River."
+  ],
+  "TX": [
+   "Rohan",
+   "likeness",
+   "Horse-lords on a sea of grass, independent and allied by oath."
+  ],
+  "OK": [
+   "The Wold",
+   "place",
+   "The northern downs of the Mark."
+  ],
+  "MI": [
+   "The Iron Hills",
+   "name",
+   "Iron Mountain, the iron ranges and the forges of the Motor City."
+  ],
+  "MN": [
+   "Forochel",
+   "likeness",
+   "The Snowmen slid over the ice with bones on their feet. This is the State of Hockey."
+  ],
+  "IA": [
+   "The Gardens of the Entwives",
+   "likeness",
+   "The richest tilled land in the world, east of the Great River in the tale, west of it here."
+  ],
+  "MO": [
+   "The Vales of Anduin",
+   "place",
+   "Where the two great waters meet."
+  ],
+  "KS": [
+   "The Brown Lands",
+   "likeness",
+   "Gardens that once fed a country, then blew away as dust."
+  ],
+  "NE": [
+   "Rhovanion",
+   "place",
+   "Wide grass between the River and the mountains."
+  ],
+  "SD": [
+   "The Wilderland",
+   "place",
+   "Beorning country; the stone kings look out from the hills."
+  ],
+  "ND": [
+   "The Northern Wilderland",
+   "place",
+   "The upper Langwell."
+  ],
+  "CO": [
+   "Khazad-dûm",
+   "likeness",
+   "Silver mines under the highest passes; a fortress behind blast doors inside a mountain."
+  ],
+  "WY": [
+   "The High Pass",
+   "place",
+   "Eagles, stone-giants and the three great peaks."
+  ],
+  "MT": [
+   "The Éothéod",
+   "place",
+   "The horse-folk dwelt at the springs of the Great River. The Missouri, our Langwell, rises here at Three Forks."
+  ],
+  "ID": [
+   "The Ettenmoors",
+   "place",
+   "Cold fells west of the mountains."
+  ],
+  "UT": [
+   "Rhudaur",
+   "place",
+   "The hill-country west of the mountains, with Rivendell hidden in a deep cleft at its edge."
+  ],
+  "NM": [
+   "Nan Curunír",
+   "likeness",
+   "A hidden hill where the wise made a new fire. The Rio Grande is the Isen."
+  ],
+  "AZ": [
+   "Harondor",
+   "place",
+   "South Gondor: a contested desert borderland that touches Mordor."
+  ],
+  "NV": [
+   "Mordor",
+   "likeness",
+   "A basin ringed by ranges, in the rain shadow of the Mountains of Shadow, with a dark inland sea."
+  ],
+  "CA": [
+   "Lothlórien",
+   "likeness",
+   "The Golden State is the Golden Wood: the tallest trees on earth. Eregion's smiths work by the bay."
+  ],
+  "WA": [
+   "Erebor and the Long Lake",
+   "likeness",
+   "A lone mountain stands over a trading town on the water."
+  ],
+  "OR": [
+   "Dale and Mirkwood",
+   "place",
+   "Rebuilt Dale in the valley, the great forest at its back."
+  ]
+ },
+ "places": {
+  "47900": [
+   "Minas Tirith",
+   "likeness",
+   "men",
+   "The White City. The Monument is the Tower of Ecthelion."
+  ],
+  "35620": [
+   "Fornost Erain",
+   "name",
+   "men",
+   "Norbury of the Kings. Brooklyn is Kings County."
+  ],
+  "14460": [
+   "Mithlond",
+   "likeness",
+   "elves",
+   "The Grey Havens: ships and loremasters."
+  ],
+  "38860": [
+   "Forlond",
+   "name",
+   "elves",
+   "The North Haven."
+  ],
+  "35300": [
+   "Harlond",
+   "name",
+   "elves",
+   "The South Haven of Lindon. New Haven is a haven."
+  ],
+  "16980": [
+   "Annúminas",
+   "place",
+   "men",
+   "The royal city on the lake shore. Like it, Chicago fell and was rebuilt in splendour."
+  ],
+  "26900": [
+   "Bree",
+   "likeness",
+   "men",
+   "The crossroads town. The Prancing Pony is a team called the Colts."
+  ],
+  "17140": [
+   "Tharbad",
+   "likeness",
+   "men",
+   "A river port with a famous bridge on the border of North and South, ruined by great floods (1937)."
+  ],
+  "37980": [
+   "Michel Delving",
+   "likeness",
+   "hobbits",
+   "Chief township of the Shire, seat of the Mayor and of the Mathom-house."
+  ],
+  "29540": [
+   "Hobbiton",
+   "likeness",
+   "hobbits",
+   "Plain folk, farms and buggies."
+  ],
+  "49620": [
+   "Bywater",
+   "place",
+   "hobbits",
+   "Next door to Hobbiton."
+  ],
+  "39740": [
+   "Tuckborough",
+   "place",
+   "hobbits",
+   "Berks County: a shire name."
+  ],
+  "42540": [
+   "Scary",
+   "name",
+   "hobbits",
+   "A quarry village in the hills."
+  ],
+  "25420": [
+   "Frogmorton",
+   "place",
+   "hobbits",
+   "On the East Road."
+  ],
+  "10900": [
+   "Stock",
+   "place",
+   "hobbits",
+   "Near the Brandywine."
+  ],
+  "45940": [
+   "Bucklebury",
+   "place",
+   "hobbits",
+   "Chief place of Buckland, across the river."
+  ],
+  "20100": [
+   "Rushey",
+   "place",
+   "hobbits",
+   "A village of the Marish."
+  ],
+  "38300": [
+   "Belegost",
+   "likeness",
+   "dwarves",
+   "An elder Dwarf-city of the Blue Mountains, famed for its mail. The Steel City keeps the craft."
+  ],
+  "31140": [
+   "Nogrod",
+   "place",
+   "dwarves",
+   "The other elder city of the Blue Mountains, famed for its smiths."
+  ],
+  "12580": [
+   "The Harlond",
+   "place",
+   "men",
+   "The harbour of Minas Tirith."
+  ],
+  "16820": [
+   "Imloth Melui",
+   "likeness",
+   "men",
+   "A valley of roses in Lossarnach. Monticello's gardens."
+  ],
+  "16740": [
+   "Ethring",
+   "place",
+   "men",
+   "The crossing town of Ringló Vale."
+  ],
+  "12060": [
+   "Calembel",
+   "place",
+   "men",
+   "Chief town of Lamedon, on its hill. Atlanta's own story: burned in a war of kin, and risen again."
+  ],
+  "33100": [
+   "Dol Amroth",
+   "likeness",
+   "men",
+   "The Prince's city by the sea. Swan-ships put out from here: the cruise capital of the world."
+  ],
+  "37340": [
+   "Edhellond",
+   "likeness",
+   "elves",
+   "The Elf-haven, from which ships leave the circles of the world."
+  ],
+  "28580": [
+   "Tolfalas",
+   "place",
+   "men",
+   "The island in the bay."
+  ],
+  "45300": [
+   "Umbar",
+   "likeness",
+   "men",
+   "The City of the Corsairs. It holds a pirate festival every year."
+  ],
+  "35380": [
+   "Pelargir",
+   "place",
+   "men",
+   "The great port above the Mouths of the Great River."
+  ],
+  "32820": [
+   "Osgiliath",
+   "name",
+   "men",
+   "The old capital astride the Great River. Tolkien likened Gondor to Egypt; this is Memphis."
+  ],
+  "34980": [
+   "Erech",
+   "place",
+   "men",
+   "The hill of the oath-stone in Morthond."
+  ],
+  "30780": [
+   "Emyn Arnen",
+   "place",
+   "men",
+   "The Steward's hills in Ithilien."
+  ],
+  "12420": [
+   "Edoras",
+   "likeness",
+   "men",
+   "The capital on its hill, with a golden hall of song."
+  ],
+  "19100": [
+   "Aldburg",
+   "likeness",
+   "men",
+   "Old seat of the Mark. Fort Worth is Cowtown."
+  ],
+  "41700": [
+   "The Hornburg",
+   "likeness",
+   "men",
+   "Helm's Deep: the fortress of the last stand."
+  ],
+  "21340": [
+   "Fords of Isen",
+   "name",
+   "men",
+   "El Paso means the crossing. The river is the Isen."
+  ],
+  "26420": [
+   "Lond Daer",
+   "likeness",
+   "men",
+   "The Great Haven of the Sea-kings on a timber coast."
+  ],
+  "42140": [
+   "Isengard",
+   "place",
+   "wizards",
+   "Below the hill of Orthanc (Los Alamos)."
+  ],
+  "19740": [
+   "Khazad-dûm",
+   "likeness",
+   "dwarves",
+   "The Dwarrowdelf: mines, a mint, and the mile-high gate."
+  ],
+  "17820": [
+   "The Doors of Durin",
+   "likeness",
+   "dwarves",
+   "A fortress inside a mountain behind 25-ton doors."
+  ],
+  "29820": [
+   "Barad-dûr",
+   "likeness",
+   "shadow",
+   "A tower of light in the desert, and a great Eye on the Sphere."
+  ],
+  "39900": [
+   "The Morannon",
+   "place",
+   "shadow",
+   "The gate into the Black Land at its north-west corner."
+  ],
+  "41860": [
+   "Ost-in-Edhil",
+   "likeness",
+   "elves",
+   "City of the Elven-smiths of Eregion."
+  ],
+  "41940": [
+   "Gwaith-i-Mírdain",
+   "likeness",
+   "elves",
+   "The People of the Jewel-smiths, who made rings of power out of sand."
+  ],
+  "31080": [
+   "Caras Galadhon",
+   "likeness",
+   "elves",
+   "City of the Trees. Its Mirror shows what was, what is, and what may be."
+  ],
+  "34900": [
+   "Dorwinion",
+   "likeness",
+   "men",
+   "The wine-land whose vintage put the Elvenking's butler to sleep."
+  ],
+  "42660": [
+   "Esgaroth",
+   "likeness",
+   "men",
+   "Lake-town: merchants on the water under the Lonely Mountain."
+  ],
+  "38900": [
+   "Dale",
+   "likeness",
+   "men",
+   "The rebuilt city of craftsmen in the valley."
+  ],
+  "28140": [
+   "The Old Ford",
+   "place",
+   "men",
+   "Where the great road crosses the river into the Wild."
+  ],
+  "14580": [
+   "Framsburg",
+   "place",
+   "men",
+   "The old burg of the horse-folk where the source-streams meet. Three Forks is close by."
+  ]
+ },
+ "wonders": {
+  "nps-GRSM": [
+   "The Beacons of Gondor",
+   "likeness",
+   "Fire-towers on a chain of misty peaks."
+  ],
+  "nps-ZION": [
+   "Imladris (Rivendell)",
+   "likeness",
+   "The deep dale of the cleft; its real name already means sanctuary."
+  ],
+  "nps-YELL": [
+   "The Withered Heath",
+   "likeness",
+   "Where the ground breathes fire: the breeding place of dragons."
+  ],
+  "nps-GRCA": [
+   "The Emyn Muil",
+   "likeness",
+   "A maze of stone above the great river."
+  ],
+  "nps-YOSE": [
+   "Cerin Amroth",
+   "likeness",
+   "The heart of the Golden Wood, among the greatest trees."
+  ],
+  "nps-ROMO": [
+   "The Redhorn Gate",
+   "place",
+   "The high pass under Caradhras the Cruel."
+  ],
+  "nps-ACAD": [
+   "The Tower Hills",
+   "place",
+   "Granite hills looking over the Sea."
+  ],
+  "nps-GRTE": [
+   "The Three Peaks",
+   "name",
+   "Caradhras, Celebdil and Fanuidhol. The Tetons are three."
+  ],
+  "nps-OLYM": [
+   "The Elvenking's Halls",
+   "likeness",
+   "The Woodland Realm in the deep rain forest."
+  ],
+  "nps-GLAC": [
+   "The Springs of Langwell",
+   "new",
+   "Waters that reach the Great River begin on these peaks. The name is ours."
+  ],
+  "nps-CUVA": [
+   "The South Downs",
+   "place",
+   "Green downs of Cardolan."
+  ],
+  "nps-JOTR": [
+   "Dagorlad",
+   "likeness",
+   "The battle plain before the Black Land."
+  ],
+  "nps-INDU": [
+   "The Chetwood",
+   "place",
+   "Bree-land's wood by the lake."
+  ],
+  "nps-HOSP": [
+   "Henneth Annûn",
+   "likeness",
+   "The hidden waters of Ithilien."
+  ],
+  "nps-JEFF": [
+   "Durin's Bridge",
+   "likeness",
+   "A single slender arch. (Second choice: the Gate of Kings.)"
+  ],
+  "nps-GOGA": [
+   "The Golden Gate of the Wood",
+   "new",
+   "The name asked for it."
+  ],
+  "nps-MALL": [
+   "The Court of the Fountain",
+   "likeness",
+   "The White Tree and the white Tower of the Stewards."
+  ],
+  "nps-GATE": [
+   "The Mouths of Lune",
+   "place",
+   "The Hudson is the Lune."
+  ],
+  "nps-GUIS": [
+   "The Isles of the Ethir",
+   "new",
+   "Sand islands off the Mouths of Anduin. The name is ours."
+  ],
+  "nps-LAKE": [
+   "The Sea of Núrnen",
+   "likeness",
+   "A dark, shrinking inland sea in the Black Land."
+  ],
+  "nhl-66000899": [
+   "Cahokia Mounds",
+   "none",
+   "Sacred ground of living nations. It keeps its own name."
+  ],
+  "nhl-84003872": [
+   "The Quays of Edhellond",
+   "likeness",
+   "Where the ships depart."
+  ],
+  "nhl-66000377": [
+   "The Old Quays of Pelargir",
+   "place",
+   "The oldest quarter of the oldest port."
+  ],
+  "nps-GOSP": [
+   "The Last Bridge",
+   "likeness",
+   "Where the road from the East and the road from the West were joined."
+  ],
+  "nps-INDE": [
+   "The Town Hole",
+   "likeness",
+   "The Town Hole of Michel Delving, seat of the Mayor. In the Fourth Age the King made the Shire a Free Land."
+  ],
+  "nhl-66000826": [
+   "The Rose-garden of Imloth Melui",
+   "likeness",
+   "A house and garden on a hill in Lossarnach."
+  ],
+  "nps-MORU": [
+   "The Argonath",
+   "likeness",
+   "Kings carved from the living rock."
+  ],
+  "nps-STLI": [
+   "The Star-glass",
+   "likeness",
+   "A light held up for those who come in the dark."
+  ],
+  "nhl-66000496": [
+   "Taos Pueblo",
+   "none",
+   "A living community. It keeps its own name."
+  ],
+  "nhl-66000808": [
+   "The Hornburg",
+   "likeness",
+   "The fortress of the last stand."
+  ],
+  "nps-WRBR": [
+   "The Eyrie of the Eagles",
+   "likeness",
+   "Where the first wings took the air."
+  ],
+  "nhl-87002652": [
+   "The Party Field",
+   "likeness",
+   "A green field for festivals."
+  ]
+ },
+ "sites": [
+  {
+   "name": "Erebor, the Lonely Mountain",
+   "real": "Mount Rainier",
+   "lat": 46.853,
+   "lon": -121.76,
+   "basis": "likeness"
+  },
+  {
+   "name": "The Desolation of Smaug",
+   "real": "Mount St. Helens blast zone",
+   "lat": 46.2,
+   "lon": -122.19,
+   "basis": "likeness"
+  },
+  {
+   "name": "Orodruin (Mount Doom)",
+   "real": "Lunar Crater volcanic field",
+   "lat": 38.384,
+   "lon": -116.069,
+   "basis": "likeness"
+  },
+  {
+   "name": "The Plateau of Gorgoroth",
+   "real": "Black Rock Desert",
+   "lat": 40.91,
+   "lon": -119.06,
+   "basis": "name"
+  },
+  {
+   "name": "The Dead Marshes",
+   "real": "Great Salt Lake",
+   "lat": 41.15,
+   "lon": -112.55,
+   "basis": "place"
+  },
+  {
+   "name": "Orthanc",
+   "real": "Los Alamos, 'the Hill'",
+   "lat": 35.888,
+   "lon": -106.307,
+   "basis": "likeness"
+  },
+  {
+   "name": "The Fire of Orthanc",
+   "real": "Trinity Site",
+   "lat": 33.677,
+   "lon": -106.475,
+   "basis": "likeness"
+  },
+  {
+   "name": "Rauros",
+   "real": "Niagara Falls",
+   "lat": 43.08,
+   "lon": -79.074,
+   "basis": "likeness"
+  },
+  {
+   "name": "The Glittering Caves",
+   "real": "Mammoth Cave",
+   "lat": 37.187,
+   "lon": -86.1,
+   "basis": "likeness"
+  },
+  {
+   "name": "The Hoard",
+   "real": "Fort Knox bullion depository",
+   "lat": 37.883,
+   "lon": -85.965,
+   "basis": "new"
+  },
+  {
+   "name": "The Paths of the Dead",
+   "real": "Cumberland Gap",
+   "lat": 36.604,
+   "lon": -83.673,
+   "basis": "place"
+  },
+  {
+   "name": "Bamfurlong",
+   "real": "Kennett Square, mushroom capital",
+   "lat": 39.847,
+   "lon": -75.712,
+   "basis": "likeness"
+  },
+  {
+   "name": "The Old Forest",
+   "real": "New Jersey Pine Barrens",
+   "lat": 39.75,
+   "lon": -74.6,
+   "basis": "place"
+  },
+  {
+   "name": "Elendil's Landing",
+   "real": "Plymouth Rock",
+   "lat": 41.958,
+   "lon": -70.662,
+   "basis": "new"
+  },
+  {
+   "name": "Elostirion",
+   "real": "Pilgrim Monument, Provincetown",
+   "lat": 42.052,
+   "lon": -70.189,
+   "basis": "likeness"
+  },
+  {
+   "name": "The Mallorn-groves",
+   "real": "Redwood National and State Parks",
+   "lat": 41.3,
+   "lon": -124.0,
+   "basis": "likeness"
+  },
+  {
+   "name": "Mirrormere",
+   "real": "Maroon Lake, under the Maroon Bells",
+   "lat": 39.099,
+   "lon": -106.941,
+   "basis": "likeness"
+  }
+ ],
+ "rivers": {
+  "Mississippi": [
+   "Anduin, the Great River",
+   "name",
+   "Misi-ziibi means Great River. So does Anduin."
+  ],
+  "Missouri": [
+   "Langwell",
+   "place",
+   "The long northern source of the Great River."
+  ],
+  "Ohio": [
+   "Gwathló (Greyflood)",
+   "place",
+   "The border of Cardolan, with Tharbad on it."
+  ],
+  "Arkansas": [
+   "Entwash",
+   "place",
+   "From the mountains, across the Mark, into the Great River."
+  ],
+  "Rio Grande": [
+   "Isen",
+   "place",
+   "Down from the Wizard's Vale to the Fords."
+  ],
+  "Colorado": [
+   "Poros",
+   "place",
+   "The border river of Harondor."
+  ],
+  "Columbia": [
+   "Celduin (River Running)",
+   "place",
+   "From the Lonely Mountain's country to the sea."
+  ],
+  "Snake": [
+   "Carnen (Redwater)",
+   "place",
+   "It joins the River Running."
+  ],
+  "Tennessee": [
+   "Morthond (Blackroot)",
+   "place",
+   "The river of Blackroot Vale."
+  ],
+  "Sacramento": [
+   "Nimrodel",
+   "place",
+   "A river of the Golden Wood."
+  ],
+  "Niagara": [
+   "Rauros",
+   "likeness",
+   "The great falls."
+  ]
+ },
+ "labels": [
+  {
+   "text": "HITHAEGLIR",
+   "sub": "The Misty Mountains",
+   "kind": "range",
+   "lat": 41.5,
+   "lon": -107.6,
+   "angle": -62,
+   "size": 1.0
+  },
+  {
+   "text": "ERED LUIN",
+   "sub": "The Blue Mountains",
+   "kind": "range",
+   "lat": 40.3,
+   "lon": -78.6,
+   "angle": -48,
+   "size": 0.7
+  },
+  {
+   "text": "ERED NIMRAIS",
+   "sub": "The White Mountains",
+   "kind": "range",
+   "lat": 35.6,
+   "lon": -83.3,
+   "angle": -28,
+   "size": 0.6
+  },
+  {
+   "text": "EPHEL DÚATH",
+   "sub": "Mountains of Shadow",
+   "kind": "range",
+   "lat": 37.6,
+   "lon": -119.0,
+   "angle": 58,
+   "size": 0.6
+  },
+  {
+   "text": "GORGOROTH",
+   "sub": "",
+   "kind": "waste",
+   "lat": 39.3,
+   "lon": -116.8,
+   "angle": 0,
+   "size": 0.6
+  },
+  {
+   "text": "BELEGAER",
+   "sub": "The Great Sea",
+   "kind": "sea",
+   "lat": 33.5,
+   "lon": -72.5,
+   "angle": -70,
+   "size": 1.0
+  },
+  {
+   "text": "BAY OF BELFALAS",
+   "sub": "",
+   "kind": "sea",
+   "lat": 26.6,
+   "lon": -91.5,
+   "angle": 0,
+   "size": 0.8
+  },
+  {
+   "text": "THE OUTER SEA",
+   "sub": "",
+   "kind": "sea",
+   "lat": 36.0,
+   "lon": -126.5,
+   "angle": 72,
+   "size": 0.8
+  },
+  {
+   "text": "FORODWAITH",
+   "sub": "The Northern Waste",
+   "kind": "foreign",
+   "lat": 51.2,
+   "lon": -102.0,
+   "angle": 0,
+   "size": 0.9
+  },
+  {
+   "text": "NENUIAL",
+   "sub": "Lake Evendim",
+   "kind": "lake",
+   "lat": 44.0,
+   "lon": -87.0,
+   "angle": -80,
+   "size": 0.45
+  },
+  {
+   "text": "ICE BAY OF FOROCHEL",
+   "sub": "",
+   "kind": "lake",
+   "lat": 47.6,
+   "lon": -87.6,
+   "angle": -8,
+   "size": 0.4
+  }
+ ],
+ "yields": {
+  "food": [
+   "Harvest",
+   "farm, field and fishery hands"
+  ],
+  "production": [
+   "Craft",
+   "smiths, masons and makers"
+  ],
+  "gold": [
+   "Gold",
+   "the worth of all that is made in a year (GDP)"
+  ],
+  "science": [
+   "Lore",
+   "scribes, reckoners and loremasters"
+  ],
+  "culture": [
+   "Song",
+   "minstrels, players and artists"
+  ]
+ },
+ "principles": [
+  "The real numbers never change. Only names, art and stories do.",
+  "Lands are matched to lands, never peoples to peoples. No real community is cast as a people of the tales.",
+  "A place that is itself an Indigenous community or heritage site keeps its own name.",
+  "Every match shows its basis: by place, by likeness, by name, or new-made.",
+  "Cities without a strong match keep their real names: the tales are told in the Common Speech."
+ ]
+}

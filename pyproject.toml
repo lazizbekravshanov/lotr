@@ -1,0 +1,9 @@
+[project]
+name = "reunited-states"
+version = "0.1.0"
+description = "The United States as Middle-earth: a Tolkien edition of usaciv"
+requires-python = ">=3.11"
+dependencies = []  # standard library only, on purpose
+
+[tool.uv]
+package = false
