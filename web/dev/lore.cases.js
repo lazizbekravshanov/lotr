@@ -107,6 +107,18 @@ export const cases = [
     assert.equal(lore.aliases().some((a) => a.kind === "city" && a.id === "35620"), false);
   }],
 
+  ["a damaged Age entry is skipped", (assert) => {
+    const { doc, data } = fixture();
+    doc.ages = [null, { name: "An Age without an id" }, ...doc.ages];
+    const lore = createLore(doc, data);
+    lore.apply();
+    assert.equal(lore.ok, true, "the rest of the file still applies");
+    assert.equal(lore.age, "ta", "the default Age is still found");
+    assert.equal(city(data, "35620").name, "Fornost Erain");
+    assert.equal(lore.setAge("fa"), true, "the good Ages still switch");
+    assert.equal(lore.setAge(undefined), false, "an Age without an id is not offered");
+  }],
+
   ["legend names are applied, real ones kept", (assert) => {
     const { doc, data } = fixture();
     const lore = createLore(doc, data);

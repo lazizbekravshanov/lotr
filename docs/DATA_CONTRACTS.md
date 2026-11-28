@@ -818,7 +818,8 @@ Extensions live in `web/js/ext/<name>/index.js` and export `install(app)`; `ext/
   City View's model, the Advisors' rows) rebuilds them on this event and redraws in place, keeping the selection,
   the camera, the scroll position and keyboard focus. One that reads `.name` when it draws needs no code for it.
 * The file is used only if it is version 1 and every realm has an id, a name, a list of states and a `#rrggbb`
-  colour; otherwise the site reads as usaciv does. An entry without a name renames nothing.
+  colour; otherwise the site reads as usaciv does. An entry without a name renames nothing, and an Age without an
+  id is skipped.
 * `app.selectRealm(id, {fly})` selects a realm (legend tongue only; returns false otherwise).
 * URL keys: `names=real`, `age=sa|fa`, `realm=<id>`; absent means the default. Unknown values are ignored.
 

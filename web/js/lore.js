@@ -51,7 +51,10 @@ function setOrDelete(obj, key, value) {
 export function createLore(doc, data) {
   const ok = validDoc(doc);
   const realms = ok ? doc.realms : [];
-  const ages = ok && Array.isArray(doc.ages) ? doc.ages.map((a) => a.id) : [];
+  // An Age without an id (a damaged file) is skipped: main.js builds this before it can fall back to real names, so
+  // reading a bad entry here would stop the whole map.
+  const ageEntries = ok && Array.isArray(doc.ages) ? doc.ages.filter((a) => isName(a?.id)) : [];
+  const ages = ageEntries.map((a) => a.id);
   const worldStates = data?.world?.states || [];
   const fipsOf = new Map(); // fips, abbr or index → fips
   worldStates.forEach((s, i) => { fipsOf.set(s.fips, s.fips); fipsOf.set(s.abbr, s.fips); fipsOf.set(i, s.fips); });
@@ -62,7 +65,7 @@ export function createLore(doc, data) {
   const adopted = { wonders: [] };
 
   let tongue = ok ? "legend" : "real";
-  let age = (ok && doc.ages?.find((a) => a.default)?.id) || ages[0] || "ta";
+  let age = ageEntries.find((a) => a.default)?.id || ages[0] || "ta";
 
   function entry(kind, id) {
     if (!ok) return null;
